@@ -1,0 +1,1926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Fixify — Home Repair Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#09090F;--card:#10111E;--card2:#161829;--card3:#1D1F34;--border:rgba(255,255,255,0.07);--y:#F5C518;--y2:#FFD740;--b:#38BDF8;--g:#10B981;--r:#EF4444;--m:#6B7196;--t:#DDE1F5}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--t);font-family:'Plus Jakarta Sans',sans-serif;min-height:100vh;overflow-x:hidden}
+::-webkit-scrollbar{width:5px;background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--card3);border-radius:3px}
+
+/* ── DOODLE LAYER ── */
+.doodle-layer{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.doodle-layer svg{position:absolute;opacity:.032}
+@keyframes dSpin{to{transform:rotate(360deg)}}
+@keyframes dFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-22px) rotate(8deg)}}
+@keyframes dDrift{0%,100%{transform:translateX(0) rotate(15deg)}50%{transform:translateX(18px) rotate(-5deg)}}
+
+/* ── ANIMATIONS ── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+@keyframes ping{0%{transform:scale(1);opacity:.7}100%{transform:scale(2.4);opacity:0}}
+@keyframes wordCycle{0%{opacity:0;transform:translateY(8px)}15%,85%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(-8px)}}
+@keyframes scaleIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@keyframes gradShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+@keyframes pulseGlow{0%,100%{box-shadow:0 0 18px rgba(245,197,24,.2)}50%{box-shadow:0 0 36px rgba(245,197,24,.55)}}
+@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+@keyframes neonPulse{0%,100%{text-shadow:0 0 10px rgba(245,197,24,.35)}50%{text-shadow:0 0 28px rgba(245,197,24,.85),0 0 55px rgba(245,197,24,.3)}}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes orb{0%{transform:translate(-50%,-50%) scale(1)}50%{transform:translate(-50%,-50%) scale(1.15)}100%{transform:translate(-50%,-50%) scale(1)}}
+
+.fu{animation:fadeUp .5s ease both}
+.fu1{animation:fadeUp .5s .1s ease both;opacity:0}
+.fu2{animation:fadeUp .5s .2s ease both;opacity:0}
+.fu3{animation:fadeUp .5s .3s ease both;opacity:0}
+.fu4{animation:fadeUp .5s .4s ease both;opacity:0}
+
+/* ── UTILITIES ── */
+.card{background:var(--card);border:1.5px solid var(--border);border-radius:14px}
+.card2{background:var(--card2);border:1.5px solid var(--border);border-radius:11px}
+.tag{display:inline-flex;align-items:center;background:rgba(245,197,24,.1);color:var(--y);font-size:.67rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase}
+.tagb{display:inline-flex;align-items:center;background:rgba(56,189,248,.1);color:var(--b);font-size:.67rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase}
+.tagg{display:inline-flex;align-items:center;background:rgba(16,185,129,.1);color:var(--g);font-size:.67rem;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.06em;text-transform:uppercase}
+.btn-y{background:var(--y);color:#09090F;font-weight:700;border:none;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:10px;transition:all .22s;display:inline-flex;align-items:center;gap:6px}
+.btn-y:hover{background:var(--y2);transform:translateY(-2px);box-shadow:0 10px 22px rgba(245,197,24,.35)}
+.btn-b{background:rgba(56,189,248,.1);color:var(--b);font-weight:600;border:1.5px solid rgba(56,189,248,.2);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:10px;transition:all .22s;display:inline-flex;align-items:center;gap:6px}
+.btn-b:hover{background:rgba(56,189,248,.18);border-color:rgba(56,189,248,.45)}
+.btn-g{background:rgba(16,185,129,.1);color:var(--g);font-weight:600;border:1.5px solid rgba(16,185,129,.2);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:10px;transition:all .22s;display:inline-flex;align-items:center;gap:6px}
+.btn-g:hover{background:rgba(16,185,129,.18);border-color:rgba(16,185,129,.45);transform:translateY(-1px)}
+.inp{background:var(--card3);border:1.5px solid var(--border);color:var(--t);border-radius:10px;padding:10px 13px;width:100%;font-family:'Plus Jakarta Sans',sans-serif;font-size:.86rem;outline:none;transition:border-color .2s}
+.inp:focus{border-color:var(--b)}.inp::placeholder{color:var(--m)}
+select.inp option{background:var(--card2)}
+.lift{transition:transform .25s,box-shadow .25s}.lift:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,.55)}
+
+/* ── NAVBAR ── */
+nav{position:fixed;top:0;left:0;right:0;z-index:900;background:rgba(9,9,15,.85);backdrop-filter:blur(18px);border-bottom:1px solid transparent;transition:all .3s}
+nav.scrolled{background:rgba(9,9,15,.97);border-bottom-color:var(--border)}
+.nav-inner{max-width:1180px;margin:0 auto;padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between}
+.logo{display:flex;align-items:center;gap:8px;cursor:pointer;background:none;border:none}
+.logo-icon{width:31px;height:31px;background:var(--y);border-radius:7px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.88rem;color:var(--bg);font-family:'Space Grotesk',sans-serif}
+.logo-text{font-size:1.18rem;font-weight:800;color:#fff;font-family:'Space Grotesk',sans-serif;letter-spacing:-.02em}
+.nav-links{display:flex;gap:0}
+.nav-link{position:relative;background:transparent;color:rgba(145,152,195,.58);border:none;cursor:pointer;padding:8px 13px;font-size:.64rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;font-family:'Space Grotesk',sans-serif;transition:color .22s}
+.nav-link::after{content:'';position:absolute;bottom:0;left:13px;right:13px;height:2px;background:linear-gradient(90deg,var(--y),var(--b));border-radius:2px;transform:scaleX(0);transform-origin:left;transition:transform .28s cubic-bezier(.4,0,.2,1)}
+.nav-link:hover{color:#fff}.nav-link:hover::after,.nav-link.active::after{transform:scaleX(1)}
+.nav-link.active{color:#fff}
+.nav-right{display:flex;gap:8px;align-items:center}
+.notif-btn{position:relative;background:rgba(255,255,255,.05);border:1px solid var(--border);width:35px;height:35px;border-radius:9px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.88rem}
+.notif-badge{position:absolute;top:-4px;right:-4px;background:var(--r);color:#fff;width:15px;height:15px;border-radius:50%;font-size:.52rem;font-weight:800;display:flex;align-items:center;justify-content:center}
+.cart-btn{padding:7px 15px;font-size:.8rem}
+.nav-tech-btn{background:linear-gradient(135deg,rgba(16,185,129,.15),rgba(245,197,24,.1));border:1px solid rgba(16,185,129,.35);color:var(--g);font-size:.73rem;font-weight:700;padding:6px 13px;border-radius:9px;cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;transition:all .22s;white-space:nowrap}
+.nav-tech-btn:hover{background:rgba(16,185,129,.25);transform:translateY(-1px)}
+
+/* ── PAGES ── */
+.page{display:none;padding-top:60px;min-height:100vh;position:relative;z-index:1}
+.page.active{display:block}
+.page-pad{max-width:1180px;margin:0 auto;padding:34px 20px}
+
+/* ── HERO ── */
+.hero{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 60px);overflow:hidden;position:relative}
+#hero-canvas{position:absolute;inset:0;pointer-events:none;z-index:0}
+.hero-orb{position:absolute;border-radius:50%;pointer-events:none;filter:blur(80px);animation:orb 6s ease-in-out infinite}
+.hero-left{display:flex;flex-direction:column;justify-content:center;padding:clamp(50px,7vw,100px) clamp(18px,4vw,60px) 50px;position:relative;z-index:2}
+.hero-right{background:#0b0c18;position:relative;min-height:320px;overflow:hidden;z-index:2}
+.hero-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(2.2rem,5vw,3.8rem);font-weight:800;line-height:1.03;letter-spacing:-.03em;color:#fff;margin-bottom:1rem}
+.hero-title .grad{background:linear-gradient(135deg,var(--y) 0%,#FF8C42 50%,var(--b) 100%);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:gradShift 4s ease infinite}
+.word-cycle{color:var(--y);display:inline-block;animation:wordCycle 2.2s ease infinite}
+.hero-sub{color:var(--m);font-size:clamp(.86rem,1.3vw,.98rem);line-height:1.75;max-width:400px;margin-bottom:1.7rem}
+.hero-btns{display:flex;gap:10px;flex-wrap:wrap}
+.hero-stats{display:flex;gap:22px;margin-top:1.8rem;flex-wrap:wrap}
+.hero-stat-val{font-family:'Space Grotesk',sans-serif;font-size:1.2rem;font-weight:800;color:#fff}
+.hero-stat-lbl{color:var(--m);font-size:.7rem;margin-top:2px}
+.hero-live-card{position:absolute;bottom:20px;left:16px;right:16px;background:rgba(16,17,30,.93);backdrop-filter:blur(14px);border:1px solid var(--border);border-radius:13px;padding:13px 16px;animation:slideUp .6s .4s ease both;opacity:0}
+.live-row{display:flex;gap:8px;padding:7px 0;border-top:1px solid var(--border);align-items:center}
+.live-avatar{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:800;color:#fff;flex-shrink:0}
+.floating-icons{position:absolute;inset:0;overflow:hidden}
+.fi{position:absolute;font-size:2rem;opacity:.07;animation:dFloat 6s ease-in-out infinite}
+
+/* ── STAT BAR ── */
+.stat-bar{background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:2.2rem 6%}
+.stat-bar-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.stat-item{text-align:center;padding:.4rem 0}
+.stat-num{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.6rem,2.8vw,2.2rem);font-weight:800;color:#fff;line-height:1}
+.stat-num span{color:var(--y)}
+.stat-lbl{color:var(--m);font-size:.74rem;margin-top:4px}
+
+/* ── SECTIONS ── */
+.section{padding:80px 6%}
+.section-inner{max-width:1100px;margin:0 auto}
+.section-head{text-align:center;margin-bottom:2.8rem}
+.section-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.6rem,3.2vw,2.5rem);font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:.5rem}
+.section-sub{color:var(--m);font-size:.88rem;max-width:380px;margin:0 auto}
+.bg-card{background:var(--card);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+
+/* ── SERVICES ── */
+.services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.service-card{padding:1.5rem 1.3rem;cursor:pointer;position:relative;overflow:hidden;transition:all .25s}
+.service-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(245,197,24,.08),transparent);opacity:0;transition:opacity .25s}
+.service-card:hover::before{opacity:1}
+.service-icon{font-size:1.8rem;margin-bottom:.8rem;display:inline-block;transition:transform .3s}
+.service-card:hover .service-icon{transform:scale(1.2) rotate(-8deg)}
+.service-name{font-weight:700;font-size:.9rem;color:#fff;margin-bottom:.3rem}
+.service-desc{color:var(--m);font-size:.76rem;line-height:1.5;margin-bottom:.6rem}
+.service-price{color:var(--y);font-size:.76rem;font-weight:700}
+
+/* ── STEPS ── */
+.steps-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.step-card{padding:1.6rem;position:relative;overflow:hidden}
+.step-num{position:absolute;top:12px;right:14px;font-family:'Space Grotesk',sans-serif;font-size:3rem;font-weight:900;color:rgba(245,197,24,.06);line-height:1}
+.step-icon{font-size:1.8rem;margin-bottom:.9rem}
+.step-title{font-weight:800;font-size:.96rem;color:#fff;margin-bottom:.45rem}
+.step-desc{color:var(--m);font-size:.82rem;line-height:1.6}
+
+/* ── BECOME TECH SECTION (HOME) ── */
+.become-sec{padding:88px 6%;background:linear-gradient(160deg,rgba(16,185,129,.04) 0%,var(--bg) 40%,rgba(245,197,24,.04) 100%);border-top:1px solid var(--border)}
+.become-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.become-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,.1);color:var(--g);font-size:.67rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.07em;text-transform:uppercase;margin-bottom:1rem}
+.become-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.7rem,3vw,2.5rem);font-weight:800;color:#fff;line-height:1.08;letter-spacing:-.02em;margin-bottom:.9rem}
+.become-sub{color:var(--m);font-size:.9rem;line-height:1.75;margin-bottom:1.7rem}
+.benefit-list{display:flex;flex-direction:column;gap:9px;margin-bottom:1.9rem}
+.benefit-row{display:flex;align-items:center;gap:12px;padding:11px 15px;background:var(--card);border:1px solid var(--border);border-radius:12px;transition:all .25s;cursor:default}
+.benefit-row:hover{border-color:rgba(16,185,129,.3);background:rgba(16,185,129,.04);transform:translateX(4px)}
+.benefit-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.95rem;flex-shrink:0}
+.benefit-val{font-weight:800;font-size:.88rem;color:#fff}
+.benefit-lbl{font-size:.71rem;color:var(--m);margin-top:1px}
+.become-steps-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:1.8rem;position:relative;overflow:hidden}
+.become-steps-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--g),var(--y),var(--b));animation:gradShift 4s ease infinite;background-size:300% 100%}
+.bstep{display:flex;align-items:center;gap:14px;padding:13px 0;border-bottom:1px solid var(--border)}
+.bstep:last-child{border-bottom:none}
+.bstep-num{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.76rem;flex-shrink:0;font-family:'Space Grotesk',sans-serif}
+.bstep-title{font-weight:700;font-size:.86rem;color:#fff}
+.bstep-sub{font-size:.71rem;color:var(--m);margin-top:2px}
+.earn-badge{margin-top:1.2rem;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(16,185,129,.07);border:1px solid rgba(16,185,129,.2);border-radius:11px}
+
+/* ── REVIEWS ── */
+.reviews-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.review-card{padding:1.5rem}
+.review-stars{display:flex;gap:2px;margin-bottom:.8rem;color:#F59E0B;font-size:.86rem}
+.review-text{color:var(--t);font-size:.84rem;line-height:1.7;margin-bottom:1rem}
+.review-author{display:flex;align-items:center;gap:8px}
+.review-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.82rem;color:#fff}
+.review-name{font-weight:700;font-size:.84rem;color:#fff}
+.review-role{font-size:.7rem;color:var(--m)}
+
+/* ── CTA ── */
+.cta-section{padding:65px 6%;background:var(--card);border-top:1px solid var(--border);text-align:center}
+.cta-inner{max-width:520px;margin:0 auto}
+.cta-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.6rem,3vw,2.3rem);font-weight:800;color:#fff;margin-bottom:.7rem;letter-spacing:-.02em}
+.cta-sub{color:var(--m);font-size:.9rem;margin-bottom:1.6rem;line-height:1.7}
+
+/* ── FIX-FEED ── */
+.feed-header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:26px;flex-wrap:wrap;gap:10px}
+.feed-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.4rem,2.8vw,1.9rem);font-weight:800;color:#fff;margin-bottom:3px}
+.feed-sub{color:var(--m);font-size:.84rem}
+.posts-scroll{display:flex;gap:9px;overflow-x:auto;padding-bottom:5px;margin-bottom:24px}
+.post-card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:11px 13px;min-width:220px;flex-shrink:0;cursor:pointer;transition:all .22s}
+.post-card:hover{border-color:rgba(56,189,248,.35);transform:translateY(-2px)}
+.filters{display:flex;gap:9px;margin-bottom:20px;flex-wrap:wrap;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:160px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--m);font-size:.85rem;pointer-events:none}
+.search-wrap .inp{padding-left:32px}
+.techs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.tech-card{padding:1.4rem}
+.tech-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.9rem}
+.tech-avatar{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.95rem;color:#fff;flex-shrink:0}
+.tech-name{font-weight:700;color:#fff;font-size:.88rem}
+.tech-spec{color:var(--m);font-size:.73rem}
+.avail-badge{font-size:.63rem;font-weight:700;padding:2px 8px;border-radius:20px;display:flex;align-items:center;gap:3px;flex-shrink:0;white-space:nowrap}
+.avail-dot{width:4px;height:4px;border-radius:50%;background:currentColor;display:inline-block}
+.tech-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:.9rem;text-align:center}
+.tech-stat{background:var(--card2);border-radius:7px;padding:6px 4px}
+.tech-stat-val{font-weight:800;font-size:.82rem;color:#fff}
+.tech-stat-lbl{font-size:.6rem;color:var(--m);margin-top:1px}
+.tech-meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem}
+.tech-price{font-weight:700;color:var(--y);font-size:.84rem}
+.tech-city{font-weight:600;color:#fff;font-size:.76rem;display:flex;align-items:center;gap:2px}
+
+/* ── POST DETAIL & COMMENTS ── */
+.bid-card{background:linear-gradient(135deg,rgba(16,185,129,.07),rgba(56,189,248,.04));border:1px solid rgba(16,185,129,.22);border-radius:11px;padding:11px 14px;margin-bottom:8px;transition:all .2s}
+.bid-card:hover{border-color:rgba(16,185,129,.4)}
+.bid-price{font-weight:800;color:var(--g);font-size:1.05rem;font-family:'Space Grotesk',sans-serif}
+.comment-item{display:flex;gap:9px;margin-bottom:9px;padding:9px 11px;background:var(--card2);border-radius:10px;border:1px solid var(--border)}
+.comment-avatar{width:27px;height:27px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.66rem;color:#fff;flex-shrink:0}
+.comment-name{font-weight:700;font-size:.77rem;color:#fff}
+.comment-time{font-size:.62rem;color:var(--m);margin-left:5px}
+.comment-text{font-size:.78rem;color:var(--t);line-height:1.45;margin-top:3px}
+
+/* ── SHOP ── */
+.shop-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.4rem,2.8vw,1.9rem);font-weight:800;color:#fff;margin-bottom:3px}
+.promo-bar{background:linear-gradient(135deg,rgba(245,197,24,.1),rgba(56,189,248,.05));border:1px solid rgba(245,197,24,.2);border-radius:11px;padding:12px 16px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.cat-filters{display:flex;gap:5px;flex-wrap:wrap}
+.cat-btn{padding:6px 11px;border-radius:20px;border:1px solid var(--border);background:transparent;color:var(--m);cursor:pointer;font-size:.76rem;font-weight:600;transition:all .2s;font-family:'Plus Jakarta Sans',sans-serif}
+.cat-btn.active{border-color:rgba(245,197,24,.4);background:rgba(245,197,24,.1);color:var(--y)}
+.products-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.product-card{overflow:hidden;display:flex;flex-direction:column}
+.product-img{background:var(--card2);padding:1.5rem;text-align:center;position:relative}
+.product-emoji{font-size:2.5rem;display:inline-block;transition:transform .3s}
+.product-card:hover .product-emoji{transform:scale(1.15) rotate(-6deg)}
+.product-body{padding:12px 13px;flex:1;display:flex;flex-direction:column}
+.product-cat{font-size:.66rem;color:var(--b);font-weight:600;margin-bottom:3px}
+.product-name{font-weight:700;font-size:.82rem;color:#fff;margin-bottom:4px;line-height:1.3;flex:1}
+.product-rating{color:#F59E0B;font-size:.73rem}
+.product-revs{color:var(--m);font-size:.68rem}
+.product-stock{font-size:.66rem;font-weight:600}
+.product-price{font-weight:800;font-size:1rem;color:var(--y)}
+.product-og{color:var(--m);font-size:.74rem;text-decoration:line-through}
+.discount-badge{position:absolute;top:8px;right:8px;background:rgba(16,185,129,.12);color:var(--g);font-size:.62rem;font-weight:800;padding:2px 6px;border-radius:20px}
+.hot-badge{position:absolute;top:8px;left:8px}
+
+/* ── DASHBOARD ── */
+.dash-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:9px}
+.dash-title{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.4rem,2.8vw,1.9rem);font-weight:800;color:#fff;margin-bottom:3px}
+.live-pill{display:flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--border);padding:6px 13px;border-radius:9px;font-size:.78rem}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--g);animation:blink 1.5s infinite}
+.stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+.stat-card{padding:1.2rem 1.4rem}
+.stat-card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.stat-card-val{font-family:'Space Grotesk',sans-serif;font-size:1.55rem;font-weight:800;color:#fff;margin-bottom:3px}
+.stat-card-lbl{color:var(--m);font-size:.73rem}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.chart-card{padding:1.2rem}
+.chart-title{font-weight:700;color:#fff;font-size:.88rem;margin-bottom:1rem}
+.chart-bars{display:flex;align-items:flex-end;gap:6px;height:100px;padding:4px 0}
+.chart-bar-wrap{display:flex;flex-direction:column;align-items:center;flex:1;gap:4px}
+.chart-bar{background:linear-gradient(to top,var(--b),rgba(56,189,248,.4));border-radius:4px 4px 0 0;width:100%}
+.chart-bar-lbl{font-size:.6rem;color:var(--m)}
+.pie-legend{display:flex;flex-direction:column;gap:7px;flex:1}
+.pie-row{display:flex;align-items:center;gap:6px}
+.pie-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.pie-name{font-size:.73rem;color:var(--t);flex:1}
+.pie-pct{font-size:.73rem;font-weight:700;color:#fff}
+.pie-visual{display:flex;align-items:center;gap:14px}
+.bottom-row{display:grid;grid-template-columns:1.1fr 1fr;gap:14px}
+.map-card{padding:1.2rem}
+.map-svg{width:100%;display:block;cursor:pointer}
+.activity-card{padding:1.2rem;display:flex;flex-direction:column}
+.activity-item{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;background:var(--card2);border-radius:9px;margin-bottom:7px}
+.activity-ico{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:.84rem;flex-shrink:0}
+.booking-table{width:100%;border-collapse:collapse}
+.booking-table th{font-size:.67rem;color:var(--m);font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:8px 11px;text-align:left;border-bottom:1px solid var(--border)}
+.booking-table td{padding:10px 11px;font-size:.81rem;border-bottom:1px solid rgba(255,255,255,.04);color:var(--t)}
+.booking-table tr:last-child td{border-bottom:none}
+.booking-status{padding:2px 8px;border-radius:20px;font-size:.63rem;font-weight:700}
+
+/* GPS */
+.gps-track-btn{display:inline-flex;align-items:center;gap:7px;background:rgba(56,189,248,.1);border:1px solid rgba(56,189,248,.3);color:var(--b);padding:8px 15px;border-radius:10px;cursor:pointer;font-size:.8rem;font-weight:700;font-family:'Plus Jakarta Sans',sans-serif;transition:all .22s;animation:pulseGlow 2.5s ease infinite}
+.gps-track-btn:hover{background:rgba(56,189,248,.2)}
+#gps-map{height:380px;border-radius:12px;overflow:hidden;position:relative;z-index:1}
+.gps-tech-row{display:flex;align-items:center;gap:10px;padding:11px 14px;background:var(--card2);border-radius:10px;border:1px solid var(--border);margin-bottom:10px}
+.gps-pulse-dot{width:10px;height:10px;border-radius:50%;background:var(--g);position:relative;flex-shrink:0}
+.gps-pulse-dot::after{content:'';position:absolute;inset:-5px;border-radius:50%;border:1.5px solid var(--g);animation:ping 1.4s ease-out infinite}
+.leaflet-container{background:#0d0e1a!important}
+
+/* ── BECOME TECH PAGE ── */
+.wizard-bar{display:flex;align-items:flex-start;gap:0;margin-bottom:36px;overflow-x:auto;padding-bottom:6px}
+.wiz-step{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1;min-width:60px}
+.wiz-step-row{display:flex;align-items:center;width:100%}
+.wiz-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.76rem;font-weight:800;font-family:'Space Grotesk',sans-serif;border:2px solid var(--border);background:var(--card2);color:var(--m);transition:all .35s;flex-shrink:0}
+.wiz-dot.active{background:var(--y);border-color:var(--y);color:#09090F;animation:pulseGlow 2s ease infinite}
+.wiz-dot.done{background:var(--g);border-color:var(--g);color:#fff}
+.wiz-line{flex:1;height:2px;background:var(--border);margin-top:-1px;transition:background .35s}
+.wiz-line.done{background:var(--g)}
+.wiz-label{font-size:.6rem;color:var(--m);text-align:center;white-space:nowrap;font-weight:600;transition:color .3s}
+.wiz-label.active{color:var(--y)}.wiz-label.done{color:var(--g)}
+.step-panel{display:none;animation:fadeUp .4s ease both}
+.step-panel.active{display:block}
+.step-panel-title{font-family:'Space Grotesk',sans-serif;font-size:1.4rem;font-weight:800;color:#fff;margin-bottom:.4rem}
+.step-panel-sub{color:var(--m);font-size:.86rem;margin-bottom:1.6rem;line-height:1.65}
+
+/* NID Upload */
+.nid-upload{border:2px dashed var(--border);border-radius:14px;padding:1.8rem;text-align:center;cursor:pointer;transition:all .25s;background:var(--card2);position:relative}
+.nid-upload:hover{border-color:rgba(56,189,248,.4);background:rgba(56,189,248,.03)}
+.nid-upload.uploaded{border-color:rgba(16,185,129,.4);background:rgba(16,185,129,.05)}
+.nid-upload input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer}
+
+/* Skill Test */
+.quiz-progress{display:flex;align-items:center;gap:10px;margin-bottom:1.2rem}
+.quiz-bar{height:4px;background:var(--card3);border-radius:4px;flex:1;overflow:hidden}
+.quiz-bar-fill{height:100%;background:linear-gradient(90deg,var(--y),var(--b));border-radius:4px;transition:width .45s ease}
+.quiz-q{font-weight:700;color:#fff;font-size:.92rem;margin-bottom:1rem;line-height:1.55}
+.quiz-opts{display:flex;flex-direction:column;gap:8px}
+.quiz-opt{background:var(--card2);border:1.5px solid var(--border);border-radius:11px;padding:11px 14px;cursor:pointer;font-size:.84rem;color:var(--t);transition:all .2s;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;width:100%}
+.quiz-opt:hover{border-color:rgba(245,197,24,.3);background:rgba(245,197,24,.05);color:#fff}
+.quiz-opt.selected{border-color:var(--y);background:rgba(245,197,24,.1);color:#fff}
+.quiz-opt.correct{border-color:var(--g)!important;background:rgba(16,185,129,.12)!important;color:var(--g)!important}
+.quiz-opt.wrong{border-color:var(--r)!important;background:rgba(239,68,68,.08)!important;color:var(--r)!important}
+
+/* Mock Test */
+.mock-scenario{background:var(--card2);border:1.5px solid var(--border);border-radius:13px;padding:14px;margin-bottom:11px;cursor:pointer;transition:all .25s}
+.mock-scenario:hover{border-color:rgba(245,197,24,.2)}
+.mock-scenario.selected{border-color:var(--y);background:rgba(245,197,24,.07)}
+
+/* ── CART DRAWER ── */
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(6px);z-index:950;display:none}
+.drawer-overlay.open{display:block}
+.cart-drawer{position:fixed;top:0;right:0;bottom:0;width:400px;max-width:100vw;background:var(--card);border-left:1px solid var(--border);display:flex;flex-direction:column;z-index:951;transform:translateX(100%);transition:transform .3s ease}
+.cart-drawer.open{transform:translateX(0)}
+.drawer-head{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.drawer-body{flex:1;overflow-y:auto;padding:14px 20px}
+.drawer-foot{padding:16px 20px;border-top:1px solid var(--border)}
+.cart-item{background:var(--card2);border-radius:11px;padding:11px 13px;margin-bottom:9px;display:flex;gap:11px;align-items:center;border:1px solid var(--border)}
+.cart-emoji{width:38px;height:38px;background:var(--card3);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0}
+.qty-btn{width:22px;height:22px;border-radius:5px;background:var(--card3);border:1px solid var(--border);cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem}
+
+/* Billing form steps */
+.billing-view{display:none;animation:fadeUp .3s ease both}
+.billing-view.active{display:block}
+.payment-opt{border:1.5px solid var(--border);border-radius:11px;padding:11px 14px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .2s;margin-bottom:8px;background:var(--card2)}
+.payment-opt:hover{border-color:rgba(245,197,24,.25)}
+.payment-opt.selected{border-color:var(--y);background:rgba(245,197,24,.07)}
+.pay-radio{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.payment-opt.selected .pay-radio{border-color:var(--y)}
+.pay-dot{width:8px;height:8px;border-radius:50%;background:var(--y);display:none}
+.payment-opt.selected .pay-dot{display:block}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);z-index:960;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:18px;width:100%;max-width:500px;max-height:92vh;overflow-y:auto;animation:scaleIn .3s ease}
+.modal-lg{max-width:620px}
+.modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px}
+.close-btn{background:var(--card2);border:1px solid var(--border);width:28px;height:28px;border-radius:7px;cursor:pointer;color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-label{color:var(--m);font-size:.68rem;display:block;margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
+.error-msg{color:var(--r);font-size:.66rem;margin-top:2px;display:block}
+.success-box{padding:3rem 2rem;text-align:center;display:flex;flex-direction:column;align-items:center;gap:13px}
+.success-icon{width:70px;height:70px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.2rem}
+
+/* ── TOAST ── */
+.toast-container{position:fixed;bottom:18px;right:18px;z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:#0b1a12;border:1px solid #14532d;color:#fff;padding:10px 15px;border-radius:11px;display:flex;align-items:center;gap:8px;font-size:.84rem;box-shadow:0 8px 28px rgba(0,0,0,.5);font-family:'Plus Jakarta Sans',sans-serif;max-width:290px;animation:fadeIn .3s ease;pointer-events:all}
+.toast.error{background:#1a0b0b;border-color:#7f1d1d}
+.toast.warn{background:#1a1500;border-color:#713f12}
+
+/* ── CONTACT ── */
+.contact-hero{background:radial-gradient(ellipse at 30% 50%,rgba(56,189,248,.06) 0%,var(--bg) 55%);border-bottom:1px solid var(--border);padding:52px 6% 44px}
+.contact-grid{max-width:1100px;margin:0 auto;padding:52px 6%;display:grid;grid-template-columns:1fr 1.4fr;gap:32px}
+.contact-item{display:flex;gap:12px;margin-bottom:14px;padding:13px;border-radius:11px}
+.contact-icon{width:36px;height:36px;background:rgba(56,189,248,.1);border-radius:9px;display:flex;align-items:center;justify-content:center;color:var(--b);flex-shrink:0;font-size:.92rem}
+.contact-label{font-size:.7rem;color:var(--m);margin-bottom:2px;font-weight:600}
+.contact-val{font-weight:700;color:#fff;font-size:.85rem}
+.contact-sub{font-size:.7rem;color:var(--m);margin-top:1px}
+.faq-item{border:1px solid var(--border);border-radius:9px;margin-bottom:7px;overflow:hidden;transition:border-color .2s}
+.faq-item.open{border-color:rgba(56,189,248,.25)}
+.faq-btn{width:100%;background:transparent;border:none;cursor:pointer;padding:10px 13px;display:flex;justify-content:space-between;align-items:center;gap:8px;color:#fff;font-weight:600;font-size:.8rem;text-align:left;font-family:'Plus Jakarta Sans',sans-serif;transition:background .2s}
+.faq-item.open .faq-btn{background:rgba(56,189,248,.06)}
+.faq-answer{display:none;padding:0 13px 11px;color:var(--m);font-size:.78rem;line-height:1.6}
+.faq-item.open .faq-answer{display:block;animation:fadeIn .2s ease}
+.faq-arrow{color:var(--b);transition:transform .2s;flex-shrink:0;font-size:.75rem}
+.faq-item.open .faq-arrow{transform:rotate(180deg)}
+
+/* ── FOOTER ── */
+footer{background:#06070D;border-top:1px solid var(--border);padding:2.8rem 6% 1.6rem;position:relative;z-index:1}
+.footer-inner{max-width:1100px;margin:0 auto}
+.footer-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border);margin-bottom:1.2rem}
+.footer-brand{margin-bottom:9px;display:flex;align-items:center;gap:7px}
+.footer-desc{color:var(--m);font-size:.77rem;line-height:1.7;max-width:200px}
+.footer-col-title{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--m);margin-bottom:11px}
+.footer-link{display:block;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.48);font-size:.8rem;padding:0;margin-bottom:7px;font-family:'Plus Jakarta Sans',sans-serif;transition:color .2s;text-align:left}
+.footer-link:hover{color:var(--y)}
+.footer-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:9px}
+.footer-copy{color:var(--m);font-size:.74rem}
+.footer-badges{display:flex;gap:6px}
+.footer-badge{background:var(--card);border:1px solid var(--border);color:var(--m);font-size:.68rem;padding:3px 9px;border-radius:20px}
+
+/* ── COMPLAINT ── */
+.complaint-section{padding:76px 6%;border-top:1px solid var(--border);background:linear-gradient(180deg,var(--bg) 0%,rgba(239,68,68,.02) 60%,var(--bg) 100%)}
+.complaint-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr 1.35fr;gap:52px;align-items:start}
+.complaint-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(239,68,68,.1);color:#EF4444;font-size:.67rem;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.07em;text-transform:uppercase;margin-bottom:1rem}
+.complaint-heading{font-family:'Space Grotesk',sans-serif;font-size:clamp(1.5rem,2.6vw,2.1rem);font-weight:800;color:#fff;letter-spacing:-.02em;line-height:1.12;margin-bottom:.75rem}
+.complaint-sub{color:var(--m);font-size:.86rem;line-height:1.72;margin-bottom:1.5rem;max-width:340px}
+.ctrust-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.4rem}
+.ctrust-row{display:flex;align-items:center;gap:11px;padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:11px}
+.ctrust-ico{width:32px;height:32px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:.9rem;flex-shrink:0}
+.ctrust-val{font-weight:800;font-size:.88rem;color:#fff}
+.ctrust-lbl{font-size:.7rem;color:var(--m);margin-top:1px}
+.resolved-feed-title{font-size:.67rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--m);margin-bottom:8px}
+.resolved-row{display:flex;align-items:center;gap:7px;padding:7px 11px;background:rgba(16,185,129,.04);border:1px solid rgba(16,185,129,.1);border-radius:9px;margin-bottom:6px;font-size:.73rem;color:var(--m)}
+.resolved-dot{width:6px;height:6px;border-radius:50%;background:var(--g);flex-shrink:0}
+.cform-card{background:var(--card);border:1.5px solid var(--border);border-radius:18px;padding:2rem;position:relative;overflow:hidden}
+.cform-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#EF4444,#F97316,#F5C518)}
+.cform-title{font-weight:800;font-size:.98rem;color:#fff;margin-bottom:.25rem}
+.cform-sub{font-size:.76rem;color:var(--m);margin-bottom:1.2rem}
+.cstar-row{display:flex;gap:4px;margin-bottom:4px}
+.cstar{background:none;border:none;cursor:pointer;font-size:1.4rem;color:#1D1F34;transition:color .15s,transform .15s;line-height:1;padding:0}
+.cstar.on,.cstar:hover{color:#F59E0B;transform:scale(1.2)}
+.ccats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.ccat{border:1.5px solid var(--border);background:var(--card2);border-radius:20px;padding:5px 12px;cursor:pointer;font-size:.72rem;font-weight:600;color:var(--m);transition:all .2s;font-family:'Plus Jakarta Sans',sans-serif;white-space:nowrap}
+.ccat.on{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.1);color:#EF4444}
+.cinp{background:var(--card3);border:1.5px solid var(--border);color:var(--t);border-radius:10px;padding:9px 12px;width:100%;font-family:'Plus Jakarta Sans',sans-serif;font-size:.83rem;outline:none;transition:border-color .2s}
+.cinp:focus{border-color:rgba(239,68,68,.45)}.cinp::placeholder{color:var(--m)}
+.btn-red{background:rgba(239,68,68,.1);color:#EF4444;font-weight:700;border:1.5px solid rgba(239,68,68,.25);cursor:pointer;font-family:'Plus Jakarta Sans',sans-serif;border-radius:10px;padding:12px;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px;width:100%;font-size:.88rem}
+.btn-red:hover{background:rgba(239,68,68,.18);transform:translateY(-2px);box-shadow:0 8px 20px rgba(239,68,68,.18)}
+.empty-state{grid-column:1/-1;text-align:center;padding:3.5rem;color:var(--m)}
+.empty-icon{font-size:2.4rem;margin-bottom:.5rem;opacity:.35}
+</style>
+</head>
+<body>
+
+<!-- ══ DOODLE LAYER ══ -->
+<div class="doodle-layer" aria-hidden="true">
+  <svg width="80" height="80" style="top:8%;left:3%;animation:dFloat 7s ease-in-out infinite"><text y="60" font-size="68" fill="white">🔧</text></svg>
+  <svg width="70" height="70" style="top:18%;right:5%;animation:dSpin 22s linear infinite"><text y="55" font-size="58" fill="white">⚙️</text></svg>
+  <svg width="60" height="60" style="top:42%;left:7%;animation:dDrift 9s ease-in-out infinite"><text y="48" font-size="50" fill="white">💡</text></svg>
+  <svg width="75" height="75" style="top:62%;right:8%;animation:dFloat 11s ease-in-out infinite 2s"><text y="60" font-size="62" fill="white">📺</text></svg>
+  <svg width="65" height="65" style="bottom:18%;left:12%;animation:dSpin 30s linear infinite reverse"><text y="52" font-size="54" fill="white">🔩</text></svg>
+  <svg width="55" height="55" style="bottom:30%;right:15%;animation:dDrift 8s ease-in-out infinite 1s"><text y="44" font-size="46" fill="white">🛠️</text></svg>
+  <svg width="50" height="50" style="top:30%;left:45%;animation:dFloat 13s ease-in-out infinite 3s"><text y="40" font-size="42" fill="white">❄️</text></svg>
+  <svg width="60" height="60" style="bottom:8%;left:55%;animation:dDrift 10s ease-in-out infinite 0.5s"><text y="48" font-size="50" fill="white">🧰</text></svg>
+</div>
+
+<!-- ══ NAVBAR ══ -->
+<nav id="navbar">
+  <div class="nav-inner">
+    <button class="logo" onclick="showPage('home')">
+      <div class="logo-icon">F</div>
+      <span class="logo-text">Fixify</span>
+    </button>
+    <div class="nav-links">
+      <button class="nav-link active" data-page="home" onclick="showPage('home')">Home</button>
+      <button class="nav-link" data-page="fixfeed" onclick="showPage('fixfeed')">Fix-Feed</button>
+      <button class="nav-link" data-page="shop" onclick="showPage('shop')">Shop</button>
+      <button class="nav-link" data-page="dashboard" onclick="showPage('dashboard')">Dashboard</button>
+      <button class="nav-link" data-page="contact" onclick="showPage('contact')">Contact</button>
+    </div>
+    <div class="nav-right">
+      <button class="nav-tech-btn" onclick="showPage('become-tech')">🔧 Become a Tech</button>
+      <button class="notif-btn" onclick="clearNotif()" title="Notifications">🔔<span class="notif-badge" id="notif-badge">3</span></button>
+      <button class="btn-y cart-btn" onclick="openCart()">🛒 Cart <span id="cart-count-badge" style="background:rgba(9,9,15,.3);padding:1px 6px;border-radius:20px;font-size:.73rem;display:none"></span></button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══════════════ HOME PAGE ══════════════ -->
+<div id="page-home" class="page active">
+  <section class="hero">
+    <canvas id="hero-canvas"></canvas>
+    <!-- Animated orbs -->
+    <div class="hero-orb" style="width:400px;height:400px;background:rgba(245,197,24,.07);top:30%;left:20%;animation-duration:7s"></div>
+    <div class="hero-orb" style="width:300px;height:300px;background:rgba(56,189,248,.05);top:50%;left:5%;animation-duration:9s;animation-delay:2s"></div>
+
+    <div class="hero-left">
+      <div class="fu" style="margin-bottom:1rem"><span class="tag">🚀 Live Across Bangladesh</span></div>
+      <h1 class="hero-title fu1">
+        Fix Your Home<br>
+        <span class="grad">Smarter</span>&nbsp;<span id="word-cycle" class="word-cycle">Today</span>
+      </h1>
+      <p class="hero-sub fu2">Post your repair problem, get bids from verified local technicians, pick the best one. Transparent pricing. No surprises.</p>
+      <div class="hero-btns fu3">
+        <button class="btn-y" style="padding:12px 24px;font-size:.88rem" onclick="showPage('fixfeed')">Post a Repair →</button>
+        <button class="btn-b" style="padding:12px 20px;font-size:.88rem" onclick="showPage('shop')">📦 Spare Parts</button>
+        <button class="btn-g" style="padding:12px 20px;font-size:.88rem" onclick="showPage('become-tech')">🔧 Join as Tech</button>
+      </div>
+      <div class="hero-stats fu4">
+        <div><div class="hero-stat-val" id="h-stat1">1,240+</div><div class="hero-stat-lbl">Active Bookings</div></div>
+        <div><div class="hero-stat-val">4.8★</div><div class="hero-stat-lbl">Avg Rating</div></div>
+        <div><div class="hero-stat-val">98%</div><div class="hero-stat-lbl">Satisfaction</div></div>
+      </div>
+    </div>
+
+    <div class="hero-right">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,#0d0e1a,#1a1b30)"></div>
+      <div class="floating-icons">
+        <div class="fi" style="top:12%;left:18%;animation-delay:0s;animation-duration:6s">🔧</div>
+        <div class="fi" style="top:28%;right:20%;animation-delay:1.5s;animation-duration:8s">📺</div>
+        <div class="fi" style="top:55%;left:30%;animation-delay:3s;animation-duration:7s">❄️</div>
+        <div class="fi" style="top:70%;right:15%;animation-delay:0.8s;animation-duration:9s">⚙️</div>
+        <div class="fi" style="top:40%;left:60%;animation-delay:2.2s;animation-duration:6.5s">💡</div>
+      </div>
+      <div class="hero-live-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">
+          <span style="font-weight:700;color:#fff;font-size:.84rem">📋 Live Fix-Feed</span>
+          <span style="display:flex;align-items:center;gap:4px;color:var(--g);font-size:.7rem;font-weight:700">
+            <span style="width:5px;height:5px;border-radius:50%;background:var(--g);display:inline-block;animation:blink 1.5s infinite"></span><span id="live-count">3 active</span>
+          </span>
+        </div>
+        <div class="live-row"><div class="live-avatar" style="background:#3B82F6">D</div><div style="flex:1"><div style="font-size:.74rem;font-weight:600;color:#fff">Diganto H.</div><div style="font-size:.67rem;color:var(--m)">AC not cooling in Dhanmondi</div></div><button class="btn-y" style="padding:3px 9px;font-size:.6rem;border-radius:6px" onclick="showPage('fixfeed')">View</button></div>
+        <div class="live-row"><div class="live-avatar" style="background:#10B981">N</div><div style="flex:1"><div style="font-size:.74rem;font-weight:600;color:#fff">Nadia R.</div><div style="font-size:.67rem;color:var(--m)">Washing machine leaking water</div></div><button class="btn-y" style="padding:3px 9px;font-size:.6rem;border-radius:6px" onclick="showPage('fixfeed')">View</button></div>
+        <div class="live-row"><div class="live-avatar" style="background:#8B5CF6">I</div><div style="flex:1"><div style="font-size:.74rem;font-weight:600;color:#fff">Imran K.</div><div style="font-size:.67rem;color:var(--m)">Samsung TV screen flickering</div></div><button class="btn-y" style="padding:3px 9px;font-size:.6rem;border-radius:6px" onclick="showPage('fixfeed')">View</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STAT BAR -->
+  <div class="stat-bar">
+    <div class="stat-bar-inner">
+      <div class="stat-item"><div class="stat-num"><span id="cnt1">0</span>+</div><div class="stat-lbl">Active Bookings</div></div>
+      <div class="stat-item"><div class="stat-num"><span id="cnt2">0</span>+</div><div class="stat-lbl">Verified Techs</div></div>
+      <div class="stat-item"><div class="stat-num"><span id="cnt3">0</span>+</div><div class="stat-lbl">Spare Parts</div></div>
+      <div class="stat-item"><div class="stat-num"><span id="cnt4">0</span><span>%</span></div><div class="stat-lbl">Satisfaction</div></div>
+    </div>
+  </div>
+
+  <!-- SERVICES -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="section-head"><span class="tag" style="margin-bottom:1rem;display:inline-block">Our Services</span><h2 class="section-title">What Can We Fix?</h2><p class="section-sub">Same-day service, transparent pricing, verified technicians.</p></div>
+      <div class="services-grid" id="services-grid"></div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="section bg-card">
+    <div class="section-inner">
+      <div class="section-head"><span class="tagb" style="margin-bottom:1rem;display:inline-block">Process</span><h2 class="section-title">Fixed in 3 Steps</h2></div>
+      <div class="steps-grid">
+        <div class="card2 step-card lift"><div class="step-num">01</div><div class="step-icon">📋</div><h3 class="step-title">Post Your Problem</h3><p class="step-desc">Describe your issue with photos on Fix-Feed. Under 2 minutes.</p></div>
+        <div class="card2 step-card lift"><div class="step-num">02</div><div class="step-icon">🔧</div><h3 class="step-title">Choose a Technician</h3><p class="step-desc">Verified techs respond with quotes. Pick by rating, price &amp; reviews.</p></div>
+        <div class="card2 step-card lift"><div class="step-num">03</div><div class="step-icon">✅</div><h3 class="step-title">Get It Fixed</h3><p class="step-desc">Technician arrives at your location. Pay only after the job is done.</p></div>
+      </div>
+      <div style="text-align:center;margin-top:2rem"><button class="btn-y" style="padding:11px 28px;font-size:.88rem" onclick="showPage('fixfeed')">Start Now →</button></div>
+    </div>
+  </section>
+
+  <!-- BECOME A TECHNICIAN SECTION -->
+  <div class="become-sec">
+    <div class="become-inner">
+      <div>
+        <div class="become-badge">🔧 Join Our Network</div>
+        <h2 class="become-title">Earn More.<br>Work Smarter.<br><span style="color:var(--g)">Be Your Own Boss.</span></h2>
+        <p class="become-sub">Join 890+ verified technicians across Bangladesh. Get jobs near you, build your profile, and earn consistently — with Fixify handling the customers.</p>
+        <div class="benefit-list">
+          <div class="benefit-row"><div class="benefit-ico" style="background:rgba(245,197,24,.12)">💰</div><div><div class="benefit-val">Earn ৳30,000–৳80,000/month</div><div class="benefit-lbl">Top technicians make 6-figure monthly income</div></div></div>
+          <div class="benefit-row"><div class="benefit-ico" style="background:rgba(56,189,248,.12)">📅</div><div><div class="benefit-val">Choose Your Own Schedule</div><div class="benefit-lbl">Accept or decline jobs — complete freedom</div></div></div>
+          <div class="benefit-row"><div class="benefit-ico" style="background:rgba(16,185,129,.12)">⚡</div><div><div class="benefit-val">Instant Job Alerts Near You</div><div class="benefit-lbl">GPS-matched jobs within your area</div></div></div>
+          <div class="benefit-row"><div class="benefit-ico" style="background:rgba(139,92,246,.12)">🛡️</div><div><div class="benefit-val">92% Payout — Only 8% Fee</div><div class="benefit-lbl">Best commission rate in Bangladesh</div></div></div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn-y" style="padding:12px 26px;font-size:.9rem" onclick="showPage('become-tech')">Apply Now → Free</button>
+          <button class="btn-g" style="padding:12px 20px;font-size:.88rem" onclick="showPage('become-tech')">📋 See Requirements</button>
+        </div>
+      </div>
+      <div class="become-steps-card lift">
+        <div style="font-weight:800;color:#fff;font-size:1rem;margin-bottom:.3rem">🗺 Technician Journey</div>
+        <div style="color:var(--m);font-size:.76rem;margin-bottom:1.2rem">4 simple steps to get verified and start earning</div>
+        <div class="bstep"><div class="bstep-num" style="background:rgba(56,189,248,.1);color:var(--b)">1</div><div><div class="bstep-title">Personal Info &amp; Specialty</div><div class="bstep-sub">Name, phone, skills, experience</div></div><span style="margin-left:auto;font-size:.7rem;color:var(--m)">~2 min</span></div>
+        <div class="bstep"><div class="bstep-num" style="background:rgba(245,197,24,.1);color:var(--y)">2</div><div><div class="bstep-title">NID Verification</div><div class="bstep-sub">Upload front &amp; back of NID card</div></div><span style="margin-left:auto;font-size:.7rem;color:var(--m)">~1 min</span></div>
+        <div class="bstep"><div class="bstep-num" style="background:rgba(139,92,246,.1);color:#8B5CF6">3</div><div><div class="bstep-title">Skill Assessment Test</div><div class="bstep-sub">10 technical MCQ questions</div></div><span style="margin-left:auto;font-size:.7rem;color:var(--m)">~8 min</span></div>
+        <div class="bstep"><div class="bstep-num" style="background:rgba(16,185,129,.1);color:var(--g)">4</div><div><div class="bstep-title">Mock Repair Scenario</div><div class="bstep-sub">Practical test — real customer case</div></div><span style="margin-left:auto;font-size:.7rem;color:var(--m)">~5 min</span></div>
+        <div class="earn-badge">
+          <div><div style="font-weight:800;color:#fff;font-size:.9rem">Approval in 24 hours</div><div style="font-size:.71rem;color:var(--m);margin-top:2px">After passing, start accepting jobs immediately</div></div>
+          <span class="tagg">Free</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVIEWS -->
+  <section class="section">
+    <div class="section-inner">
+      <div class="section-head"><span class="tagg" style="margin-bottom:1rem;display:inline-block">Reviews</span><h2 class="section-title">What Our Users Say</h2></div>
+      <div class="reviews-grid">
+        <div class="card lift review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Fixed my AC in 2 hours! Professional and zero hidden charges. Exactly what I needed."</p><div class="review-author"><div class="review-avatar" style="background:#3B82F6">F</div><div><div class="review-name">Fatima Begum</div><div class="review-role">Homeowner, Dhaka</div></div></div></div>
+        <div class="card lift review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Emergency fridge repair at midnight. The hotline works. Saved my entire restaurant stock."</p><div class="review-author"><div class="review-avatar" style="background:#10B981">A</div><div><div class="review-name">Arif Hossain</div><div class="review-role">Business Owner, Ctg</div></div></div></div>
+        <div class="card lift review-card"><div class="review-stars">★★★★★</div><p class="review-text">"Finding trusted technicians as a student renting alone was scary. Fixify changed that completely."</p><div class="review-author"><div class="review-avatar" style="background:#8B5CF6">T</div><div><div class="review-name">Tasneem Khan</div><div class="review-role">Student, Sylhet</div></div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div class="cta-section">
+    <div class="cta-inner">
+      <h2 class="cta-title">Ready to Fix Something?</h2>
+      <p class="cta-sub">Join thousands of Bangladeshis who trust Fixify for home repairs.</p>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <button class="btn-y" style="padding:12px 28px;font-size:.9rem" onclick="showPage('fixfeed')">Post a Repair →</button>
+        <button class="btn-b" style="padding:12px 24px;font-size:.9rem" onclick="showPage('shop')">🛒 Visit Shop</button>
+        <button class="btn-g" style="padding:12px 22px;font-size:.9rem" onclick="showPage('become-tech')">🔧 Become a Tech</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLAINT SECTION -->
+  <div class="complaint-section">
+    <div class="complaint-inner">
+      <div>
+        <div class="complaint-badge">⚠ Complaint Cell</div>
+        <h2 class="complaint-heading">We Hear<br>Every Voice</h2>
+        <p class="complaint-sub">Had a bad experience? Our Quality team personally responds within 6 hours — guaranteed.</p>
+        <div class="ctrust-list">
+          <div class="ctrust-row"><div class="ctrust-ico" style="background:rgba(16,185,129,.12)">✅</div><div><div class="ctrust-val">98.4% Resolved</div><div class="ctrust-lbl">Of all complaints filed this year</div></div></div>
+          <div class="ctrust-row"><div class="ctrust-ico" style="background:rgba(56,189,248,.12)">⚡</div><div><div class="ctrust-val">Under 6 Hours</div><div class="ctrust-lbl">Average team response time</div></div></div>
+          <div class="ctrust-row"><div class="ctrust-ico" style="background:rgba(245,197,24,.12)">🛡️</div><div><div class="ctrust-val">100% Anonymous Option</div><div class="ctrust-lbl">Your name hidden from the technician</div></div></div>
+        </div>
+        <div class="resolved-feed-title">Recently Resolved</div>
+        <div class="resolved-row"><span class="resolved-dot"></span><span style="color:#fff;font-weight:600">R. Hossain</span><span>·</span><span>Overcharging complaint</span><span style="margin-left:auto;font-size:.66rem">2h ago</span></div>
+        <div class="resolved-row"><span class="resolved-dot"></span><span style="color:#fff;font-weight:600">Sadia B.</span><span>·</span><span>Technician late arrival</span><span style="margin-left:auto;font-size:.66rem">5h ago</span></div>
+        <div class="resolved-row"><span class="resolved-dot"></span><span style="color:#fff;font-weight:600">Anonymous</span><span>·</span><span>Incomplete job</span><span style="margin-left:auto;font-size:.66rem">9h ago</span></div>
+      </div>
+      <div class="cform-card" id="cform-wrap">
+        <div class="cform-title">📝 Submit a Complaint</div>
+        <div class="cform-sub">Reviewed privately · Never posted publicly</div>
+        <div style="font-size:.67rem;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--m);margin-bottom:6px">Rate Your Experience</div>
+        <div class="cstar-row"><button class="cstar" onclick="cSetStars(1)">★</button><button class="cstar" onclick="cSetStars(2)">★</button><button class="cstar" onclick="cSetStars(3)">★</button><button class="cstar" onclick="cSetStars(4)">★</button><button class="cstar" onclick="cSetStars(5)">★</button></div>
+        <div id="cstar-lbl" style="font-size:.71rem;color:var(--m);margin-top:3px;margin-bottom:14px;min-height:15px"></div>
+        <div class="ccats"><button class="ccat on" onclick="cSelCat(this)">Technician Conduct</button><button class="ccat" onclick="cSelCat(this)">Overcharging</button><button class="ccat" onclick="cSelCat(this)">Late Arrival</button><button class="ccat" onclick="cSelCat(this)">Incomplete Job</button><button class="ccat" onclick="cSelCat(this)">Product / Order</button><button class="ccat" onclick="cSelCat(this)">Other</button></div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <div class="form-row">
+            <div><div style="font-size:.67rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--m);margin-bottom:4px">Your Name</div><input class="cinp" id="cinp-name" placeholder="Optional"/></div>
+            <div><div style="font-size:.67rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--m);margin-bottom:4px">Phone / Email</div><input class="cinp" id="cinp-contact" placeholder="For follow-up"/></div>
+          </div>
+          <div><div style="font-size:.67rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--m);margin-bottom:4px">Your Complaint <span style="color:#EF4444">*</span></div><textarea class="cinp" id="cinp-msg" rows="4" placeholder="Describe what happened…" style="resize:vertical;min-height:90px"></textarea><div style="display:flex;justify-content:flex-end;margin-top:3px"><span id="cinp-char" style="font-size:.65rem;color:var(--m)">0 / 500</span></div></div>
+          <label style="display:flex;align-items:center;gap:9px;padding:10px 13px;background:var(--card2);border-radius:9px;border:1px solid var(--border);cursor:pointer"><input type="checkbox" id="cinp-anon" style="accent-color:var(--y);width:15px;height:15px;cursor:pointer"/><span style="font-size:.78rem;color:var(--t)">Submit anonymously</span></label>
+          <button class="btn-red" id="cinp-btn" onclick="cSubmit()">Submit Complaint →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer><div class="footer-inner"><div class="footer-grid"><div><div class="footer-brand"><div class="logo-icon">F</div><span class="logo-text">Fixify</span></div><p class="footer-desc">Bangladesh's most trusted home repair platform. Nationwide, verified techs, fair pricing.</p></div><div><div class="footer-col-title">Platform</div><button class="footer-link" onclick="showPage('home')">Home</button><button class="footer-link" onclick="showPage('fixfeed')">Fix-Feed</button><button class="footer-link" onclick="showPage('shop')">Shop</button><button class="footer-link" onclick="showPage('dashboard')">Dashboard</button></div><div><div class="footer-col-title">Company</div><button class="footer-link" onclick="showPage('contact')">About</button><button class="footer-link" onclick="showPage('contact')">Contact</button><button class="footer-link" onclick="showPage('contact')">Privacy</button></div><div><div class="footer-col-title">Support</div><button class="footer-link">Hotline: 16247</button><button class="footer-link" onclick="showPage('contact')">FAQs</button><button class="footer-link" onclick="showPage('become-tech')">Become a Tech</button></div></div><div class="footer-bottom"><p class="footer-copy">© 2026 Fixify. All rights reserved. Built for Bangladesh 🇧🇩</p><div class="footer-badges"><span class="footer-badge">📱 Android</span><span class="footer-badge">🍎 iOS</span><span class="footer-badge">⚡ 8% Fee</span></div></div></div></footer>
+</div>
+
+<!-- ══════════════ FIX-FEED PAGE ══════════════ -->
+<div id="page-fixfeed" class="page">
+  <div class="page-pad">
+    <div class="feed-header">
+      <div><h1 class="feed-title">Fix-Feed</h1><p class="feed-sub">Browse verified technicians · Post a repair · View bids &amp; comments</p></div>
+      <button class="btn-y" style="padding:10px 20px;font-size:.84rem" onclick="openPostModal()">+ Post Repair Request</button>
+    </div>
+    <div id="posts-section" style="margin-bottom:24px">
+      <div style="color:var(--m);font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:9px">Active Requests — Click to view bids &amp; comments</div>
+      <div class="posts-scroll" id="posts-scroll"></div>
+    </div>
+    <div class="filters">
+      <div class="search-wrap"><span class="search-icon">🔍</span><input class="inp" placeholder="Search technicians…" oninput="filterTechs()" id="tech-search"/></div>
+      <select class="inp" style="width:128px" onchange="filterTechs()" id="city-filter"><option value="">All Cities</option><option>Dhaka</option><option>Chittagong</option><option>Sylhet</option><option>Khulna</option><option>Rajshahi</option></select>
+      <select class="inp" style="width:168px" onchange="filterTechs()" id="spec-filter"><option value="">All Specialties</option><option>AC &amp; Cooling</option><option>Electronics &amp; TV</option><option>Washing Machine</option><option>TV &amp; Screens</option><option>Refrigerator</option><option>Desktop &amp; PC</option></select>
+      <span style="color:var(--m);font-size:.78rem;white-space:nowrap" id="tech-count">6 found</span>
+    </div>
+    <div class="techs-grid" id="techs-grid"></div>
+  </div>
+
+  <!-- POST MODAL -->
+  <div class="modal-overlay" id="post-modal">
+    <div class="modal" style="padding:22px">
+      <div class="modal-head"><h3 style="font-weight:800;color:#fff;font-size:1.02rem">📋 Post a Repair Request</h3><button class="close-btn" onclick="closePostModal()">✕</button></div>
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <div><label class="form-label">TITLE *</label><input class="inp" id="post-title" placeholder="e.g. AC not cooling in bedroom"/></div>
+        <div><label class="form-label">DESCRIPTION *</label><textarea class="inp" id="post-desc" rows="3" placeholder="Describe the problem…" style="resize:none"></textarea></div>
+        <div class="form-row">
+          <div><label class="form-label">CATEGORY</label><select class="inp" id="post-cat"><option>AC Repair</option><option>Electronics</option><option>Washing Machine</option><option>Refrigerator</option><option>TV &amp; Screens</option><option>Desktop &amp; PC</option></select></div>
+          <div><label class="form-label">CITY</label><select class="inp" id="post-city"><option>Dhaka</option><option>Chittagong</option><option>Sylhet</option><option>Khulna</option><option>Rajshahi</option></select></div>
+        </div>
+        <div><label class="form-label">BUDGET (optional)</label><input class="inp" id="post-budget" placeholder="৳ Your budget range"/></div>
+        <button class="btn-y" style="padding:11px;font-size:.88rem;justify-content:center;width:100%" id="post-submit-btn" onclick="submitPost()">Post Request</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- POST DETAIL MODAL (bids + comments) -->
+  <div class="modal-overlay" id="post-detail-modal">
+    <div class="modal modal-lg" style="padding:22px" id="post-detail-inner"></div>
+  </div>
+
+  <!-- BOOKING MODAL -->
+  <div class="modal-overlay" id="booking-modal">
+    <div class="modal" id="booking-modal-inner" style="padding:24px"></div>
+  </div>
+</div>
+
+<!-- ══════════════ SHOP PAGE ══════════════ -->
+<div id="page-shop" class="page">
+  <div class="page-pad">
+    <div style="margin-bottom:20px"><h1 class="shop-title">Fixify Shop</h1><p style="color:var(--m);font-size:.84rem">Genuine spare parts · TV &amp; Electronics · Authorized sellers · Fast delivery</p></div>
+    <div class="promo-bar"><div style="display:flex;align-items:center;gap:8px"><span style="font-size:1.1rem">🏷️</span><div><div style="font-weight:700;color:#fff;font-size:.86rem">Free Delivery on orders above ৳500</div><div style="color:var(--m);font-size:.73rem">Code <span style="color:var(--y);font-weight:700">FIXIFY10</span> → 10% off first order</div></div></div><span class="tag">Limited Time</span></div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">
+      <div class="search-wrap" style="flex:1;min-width:150px"><span class="search-icon">🔍</span><input class="inp" placeholder="Search parts…" oninput="filterProducts()" id="prod-search"/></div>
+      <div class="cat-filters" id="cat-filters"></div>
+      <select class="inp" style="width:138px" onchange="filterProducts()" id="sort-select"><option value="popular">Most Popular</option><option value="rating">Top Rated</option><option value="price-asc">Price ↑</option><option value="price-desc">Price ↓</option></select>
+    </div>
+    <div class="products-grid" id="products-grid"></div>
+  </div>
+</div>
+
+<!-- ══════════════ DASHBOARD PAGE ══════════════ -->
+<div id="page-dashboard" class="page">
+  <div class="page-pad">
+    <div class="dash-header">
+      <div>
+        <h1 class="dash-title">My Dashboard</h1>
+        <p style="color:var(--m);font-size:.84rem">Welcome back! Track your bookings, orders &amp; repairs.</p>
+      </div>
+      <div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap">
+        <div class="live-pill"><span class="live-dot"></span><span style="color:var(--g);font-weight:700" id="live-count-dash">47 Live Jobs</span></div>
+        <button class="gps-track-btn" onclick="openGpsModal()">📡 Track My Technician</button>
+      </div>
+    </div>
+
+    <div class="stat-cards" id="dash-stat-cards"></div>
+
+    <div class="charts-row">
+      <div class="card chart-card">
+        <div class="chart-title">📅 My Bookings (Last 7 Weeks)</div>
+        <div class="chart-bars" id="book-chart"></div>
+      </div>
+      <div class="card chart-card">
+        <div class="chart-title">🎯 Service Breakdown</div>
+        <div class="pie-visual" id="pie-chart"></div>
+      </div>
+    </div>
+
+    <!-- Booking History -->
+    <div class="card" style="padding:1.3rem;margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem"><div class="chart-title" style="margin:0">🗂 Booking History</div><span class="tagb" style="font-size:.6rem">Last 30 days</span></div>
+      <div style="overflow-x:auto">
+        <table class="booking-table">
+          <thead><tr><th>Service</th><th>Technician</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>AC Service &amp; Cleaning</td><td>Rafsan Ahmed</td><td>May 14</td><td>৳850</td><td><span class="booking-status" style="background:rgba(16,185,129,.1);color:var(--g)">Completed</span></td></tr>
+            <tr><td>Washing Machine Repair</td><td>Simon Das</td><td>May 10</td><td>৳600</td><td><span class="booking-status" style="background:rgba(16,185,129,.1);color:var(--g)">Completed</span></td></tr>
+            <tr><td>TV Screen Repair</td><td>Hasan Reza</td><td>May 16</td><td>৳1,200</td><td><span class="booking-status" style="background:rgba(245,197,24,.1);color:var(--y)">Ongoing</span></td></tr>
+            <tr><td>Refrigerator Fix</td><td>Karim Uddin</td><td>May 8</td><td>৳950</td><td><span class="booking-status" style="background:rgba(16,185,129,.1);color:var(--g)">Completed</span></td></tr>
+            <tr><td>PC Diagnostic</td><td>Nabil Islam</td><td>May 17</td><td>৳500</td><td><span class="booking-status" style="background:rgba(56,189,248,.1);color:var(--b)">Scheduled</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="bottom-row">
+      <div class="card map-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.9rem"><div class="chart-title" style="margin:0">🗺️ Bangladesh Coverage</div><span class="tagg" style="font-size:.6rem">6 Cities</span></div>
+        <div style="position:relative;background:var(--card2);border-radius:10px;overflow:hidden">
+          <svg viewBox="0 0 100 110" class="map-svg" id="map-svg">
+            <path d="M 22,9 L 32,6 L 45,5 L 58,7 L 68,10 L 74,15 L 78,24 L 80,34 L 79,45 L 76,56 L 72,66 L 66,76 L 60,84 L 55,90 L 50,93 L 45,91 L 40,89 L 35,87 L 29,82 L 23,76 L 17,68 L 13,58 L 11,47 L 12,36 L 15,25 L 18,16 Z" fill="rgba(56,189,248,.06)" stroke="rgba(56,189,248,.2)" stroke-width=".5"/>
+          </svg>
+          <div id="map-popup" style="display:none;position:absolute;bottom:9px;left:9px;right:9px;background:rgba(16,17,30,.95);border:1px solid var(--border);border-radius:9px;padding:9px 12px"></div>
+        </div>
+        <p style="color:var(--m);font-size:.68rem;margin-top:6px;text-align:center">Click a city pin to see details</p>
+      </div>
+      <div class="card activity-card">
+        <div class="chart-title">⚡ Live Activity</div>
+        <div id="activity-list"></div>
+        <div style="margin-top:.9rem;border-top:1px solid var(--border);padding-top:.9rem">
+          <div style="font-size:.72rem;color:var(--m);margin-bottom:6px;font-weight:600">Weekly Bookings Near You</div>
+          <div style="display:flex;align-items:flex-end;gap:5px;height:55px" id="mini-chart"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CONTACT PAGE ══════════════ -->
+<div id="page-contact" class="page">
+  <div class="contact-hero">
+    <div style="max-width:1100px;margin:0 auto">
+      <span class="tagb fu" style="margin-bottom:1rem;display:inline-block">Get in Touch</span>
+      <h1 class="fu1" style="font-family:'Space Grotesk',sans-serif;font-size:clamp(1.8rem,3.8vw,2.7rem);font-weight:800;color:#fff;letter-spacing:-.02em;margin-bottom:.7rem">We're here to help</h1>
+      <p class="fu2" style="color:var(--m);font-size:.9rem;max-width:420px">Questions about a booking, technician issue, or want to partner? We respond within 2 hours.</p>
+    </div>
+  </div>
+  <div class="contact-grid">
+    <div>
+      <h2 style="font-weight:800;color:#fff;font-size:1.05rem;margin-bottom:1.2rem">Contact Information</h2>
+      <div class="card contact-item"><div class="contact-icon">📞</div><div><div class="contact-label">PHONE &amp; WHATSAPP</div><div class="contact-val">16247 (24/7 Hotline)</div><div class="contact-sub">Emergency repairs</div></div></div>
+      <div class="card contact-item"><div class="contact-icon">✉️</div><div><div class="contact-label">EMAIL</div><div class="contact-val">support@fixify.com.bd</div><div class="contact-sub">Replies within 2 hours</div></div></div>
+      <div class="card contact-item"><div class="contact-icon">📍</div><div><div class="contact-label">HEADQUARTERS</div><div class="contact-val">Gulshan-2, Dhaka 1212</div><div class="contact-sub">Mon–Fri: 9 AM – 6 PM</div></div></div>
+      <h2 style="font-weight:800;color:#fff;font-size:.98rem;margin:1.6rem 0 .8rem">FAQ</h2>
+      <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(0)">How do I post a repair request? <span class="faq-arrow">▾</span></button><div class="faq-answer">Go to Fix-Feed → 'Post Repair Request', describe your problem, select category and city, submit. Technicians respond within minutes.</div></div>
+      <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(1)">How are technicians verified? <span class="faq-arrow">▾</span></button><div class="faq-answer">All technicians submit NID verification, pass a 10-question skill test, complete a mock repair scenario, and get a video interview before listing.</div></div>
+      <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(2)">What is the cancellation policy? <span class="faq-arrow">▾</span></button><div class="faq-answer">Cancel before the technician departs freely. Post-departure cancellations without valid reason incur a ৳100 penalty.</div></div>
+      <div class="faq-item"><button class="faq-btn" onclick="toggleFaq(3)">How much does Fixify charge? <span class="faq-arrow">▾</span></button><div class="faq-answer">Fixify takes only 8% from each completed job. Technicians keep 92% — far better than most platforms.</div></div>
+    </div>
+    <div class="card" style="padding:1.7rem;align-self:flex-start" id="contact-form-wrap">
+      <h2 style="font-weight:800;color:#fff;font-size:1.05rem;margin-bottom:16px">Send a Message</h2>
+      <div style="display:flex;flex-direction:column;gap:11px">
+        <div class="form-row">
+          <div><label class="form-label">NAME *</label><input class="inp" id="c-name" placeholder="Full name"/><span class="error-msg" id="err-name"></span></div>
+          <div><label class="form-label">EMAIL *</label><input class="inp" id="c-email" placeholder="you@email.com"/><span class="error-msg" id="err-email"></span></div>
+        </div>
+        <div><label class="form-label">MESSAGE *</label><textarea class="inp" id="c-msg" rows="5" placeholder="How can we help?" style="resize:vertical"></textarea><span class="error-msg" id="err-msg"></span></div>
+        <button class="btn-y" style="padding:12px;font-size:.88rem;justify-content:center;width:100%" id="contact-send-btn" onclick="sendContact()">✉️ Send Message</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ BECOME TECH PAGE ══════════════ -->
+<div id="page-become-tech" class="page">
+  <div style="max-width:680px;margin:0 auto;padding:40px 20px">
+    <div style="margin-bottom:28px">
+      <span class="tagg" style="margin-bottom:12px;display:inline-block">Technician Application</span>
+      <h1 style="font-family:'Space Grotesk',sans-serif;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:800;color:#fff;margin-bottom:.5rem">Join the Fixify Network</h1>
+      <p style="color:var(--m);font-size:.88rem;line-height:1.65">Complete 4 steps to get verified. Free to apply. Approval within 24 hours.</p>
+    </div>
+
+    <!-- Wizard -->
+    <div class="wizard-bar" id="wizard-bar">
+      <div class="wiz-step"><div class="wiz-step-row"><div class="wiz-dot active" id="wd0">1</div><div class="wiz-line" id="wl0"></div></div><div class="wiz-label active" id="wlbl0">Profile</div></div>
+      <div class="wiz-step"><div class="wiz-step-row"><div class="wiz-dot" id="wd1">2</div><div class="wiz-line" id="wl1"></div></div><div class="wiz-label" id="wlbl1">NID</div></div>
+      <div class="wiz-step"><div class="wiz-step-row"><div class="wiz-dot" id="wd2">3</div><div class="wiz-line" id="wl2"></div></div><div class="wiz-label" id="wlbl2">Skill Test</div></div>
+      <div class="wiz-step"><div class="wiz-step-row"><div class="wiz-dot" id="wd3">4</div><div class="wiz-line" id="wl3" style="display:none"></div></div><div class="wiz-label" id="wlbl3">Mock Test</div></div>
+    </div>
+
+    <!-- Step 1: Personal Info -->
+    <div class="step-panel card active" id="step-panel-0" style="padding:1.8rem">
+      <div class="step-panel-title">👤 Personal Information</div>
+      <div class="step-panel-sub">Tell us about yourself and your area of expertise.</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="form-row">
+          <div><label class="form-label">Full Name *</label><input class="inp" id="t-name" placeholder="Your full name"/></div>
+          <div><label class="form-label">Phone *</label><input class="inp" id="t-phone" placeholder="01XXXXXXXXX"/></div>
+        </div>
+        <div class="form-row">
+          <div><label class="form-label">Age</label><input class="inp" id="t-age" type="number" placeholder="e.g. 28" min="18" max="65"/></div>
+          <div><label class="form-label">City *</label><select class="inp" id="t-city"><option>Dhaka</option><option>Chittagong</option><option>Sylhet</option><option>Khulna</option><option>Rajshahi</option><option>Barisal</option></select></div>
+        </div>
+        <div><label class="form-label">Primary Specialty *</label>
+          <select class="inp" id="t-spec">
+            <option>AC &amp; Cooling</option><option>Electronics &amp; TV</option><option>Washing Machine</option><option>Refrigerator</option><option>Desktop &amp; PC</option><option>Electrical &amp; Wiring</option><option>Plumbing</option><option>Phone &amp; Tablet Repair</option>
+          </select>
+        </div>
+        <div><label class="form-label">Years of Experience *</label><select class="inp" id="t-exp"><option value="">Select</option><option>Less than 1 year</option><option>1–2 years</option><option>3–5 years</option><option>5–10 years</option><option>10+ years</option></select></div>
+        <div><label class="form-label">Brief Bio</label><textarea class="inp" rows="3" id="t-bio" placeholder="Tell customers about your skills and work style…" style="resize:none"></textarea></div>
+        <button class="btn-y" style="padding:12px;font-size:.9rem;justify-content:center;width:100%" onclick="techNextStep(0)">Continue → Step 2: NID Verification</button>
+      </div>
+    </div>
+
+    <!-- Step 2: NID Verification -->
+    <div class="step-panel card" id="step-panel-1" style="padding:1.8rem">
+      <div class="step-panel-title">🪪 NID Verification</div>
+      <div class="step-panel-sub">Upload clear photos of your National ID Card. Your ID is encrypted and never shared publicly.</div>
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div>
+          <label class="form-label">NID Front Side *</label>
+          <div class="nid-upload" id="nid-front-area" onclick="document.getElementById('nid-front-file').click()">
+            <input type="file" id="nid-front-file" accept="image/*" onchange="nidUploaded('front',this)"/>
+            <div id="nid-front-preview">
+              <div style="font-size:2.2rem;margin-bottom:.6rem">🪪</div>
+              <div style="font-weight:700;color:#fff;font-size:.88rem;margin-bottom:.3rem">Click to Upload NID Front</div>
+              <div style="font-size:.74rem;color:var(--m)">JPG, PNG or PDF · Max 5MB</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">NID Back Side *</label>
+          <div class="nid-upload" id="nid-back-area" onclick="document.getElementById('nid-back-file').click()">
+            <input type="file" id="nid-back-file" accept="image/*" onchange="nidUploaded('back',this)"/>
+            <div id="nid-back-preview">
+              <div style="font-size:2.2rem;margin-bottom:.6rem">🪪</div>
+              <div style="font-weight:700;color:#fff;font-size:.88rem;margin-bottom:.3rem">Click to Upload NID Back</div>
+              <div style="font-size:.74rem;color:var(--m)">JPG, PNG or PDF · Max 5MB</div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">Selfie with NID (optional but recommended)</label>
+          <div class="nid-upload" id="nid-selfie-area" onclick="document.getElementById('nid-selfie-file').click()">
+            <input type="file" id="nid-selfie-file" accept="image/*" onchange="nidUploaded('selfie',this)"/>
+            <div id="nid-selfie-preview"><div style="font-size:2rem;margin-bottom:.5rem">🤳</div><div style="font-weight:700;color:#fff;font-size:.84rem;margin-bottom:.3rem">Upload Selfie with NID</div><div style="font-size:.72rem;color:var(--m)">Speeds up verification</div></div>
+          </div>
+        </div>
+        <div style="background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.15);border-radius:10px;padding:11px 14px;font-size:.78rem;color:var(--m)">🔒 Your NID is encrypted with 256-bit SSL. Only used for one-time identity verification.</div>
+        <div style="display:flex;gap:10px">
+          <button class="btn-b" style="padding:11px 20px;font-size:.86rem" onclick="techPrevStep(1)">← Back</button>
+          <button class="btn-y" style="padding:11px;font-size:.9rem;justify-content:center;flex:1" onclick="techNextStep(1)">Continue → Step 3: Skill Test</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 3: Skill Test -->
+    <div class="step-panel card" id="step-panel-2" style="padding:1.8rem">
+      <div class="step-panel-title">🧠 Skill Assessment Test</div>
+      <div class="step-panel-sub">Answer 5 technical questions. You need 3/5 to pass. No time limit.</div>
+      <div id="quiz-container"></div>
+    </div>
+
+    <!-- Step 4: Mock Test -->
+    <div class="step-panel card" id="step-panel-3" style="padding:1.8rem">
+      <div class="step-panel-title">🛠️ Mock Repair Scenario</div>
+      <div class="step-panel-sub">A customer has an issue. Choose the best approach to handle it professionally.</div>
+      <div id="mock-container"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ CART DRAWER ══════════════ -->
+<div class="drawer-overlay" id="cart-overlay" onclick="closeCart()"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="drawer-head">
+    <span style="font-weight:800;font-size:.96rem;color:#fff;display:flex;align-items:center;gap:7px">🛒 Cart <span id="cart-drawer-count"></span></span>
+    <button class="close-btn" onclick="closeCart()">✕</button>
+  </div>
+
+  <!-- Cart View -->
+  <div class="billing-view active" id="cart-view">
+    <div class="drawer-body" id="cart-body"></div>
+    <div class="drawer-foot" id="cart-foot" style="display:none">
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px"><span style="color:var(--m);font-size:.86rem">Subtotal</span><span style="font-weight:800;color:#fff" id="cart-total">৳0</span></div>
+      <button class="btn-y" style="padding:12px;font-size:.9rem;justify-content:center;width:100%" onclick="showBillingForm()">Proceed to Checkout →</button>
+      <p style="text-align:center;color:var(--m);font-size:.7rem;margin-top:8px">⚡ Delivered in 2–4 hours</p>
+    </div>
+  </div>
+
+  <!-- Billing Form View -->
+  <div class="billing-view" id="billing-view" style="padding:14px 20px;display:flex;flex-direction:column;height:100%">
+    <div style="flex:1;overflow-y:auto">
+      <div style="margin-bottom:14px;display:flex;align-items:center;gap:8px">
+        <button onclick="showCartView()" style="background:var(--card2);border:1px solid var(--border);border-radius:7px;padding:5px 10px;color:var(--m);cursor:pointer;font-size:.76rem;font-family:'Plus Jakarta Sans',sans-serif">← Back</button>
+        <span style="font-weight:800;color:#fff;font-size:.92rem">Billing &amp; Delivery</span>
+      </div>
+      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--b);margin-bottom:8px">Delivery Address</div>
+      <div style="display:flex;flex-direction:column;gap:9px">
+        <div class="form-row">
+          <div><label class="form-label">Full Name *</label><input class="inp" id="b-name" placeholder="Recipient name"/></div>
+          <div><label class="form-label">Phone *</label><input class="inp" id="b-phone" placeholder="01XXXXXXXXX"/></div>
+        </div>
+        <div><label class="form-label">Street Address *</label><input class="inp" id="b-addr" placeholder="House no., Road, Block"/></div>
+        <div class="form-row">
+          <div><label class="form-label">Area / Thana</label><input class="inp" id="b-area" placeholder="e.g. Dhanmondi"/></div>
+          <div><label class="form-label">City *</label><select class="inp" id="b-city"><option>Dhaka</option><option>Chittagong</option><option>Sylhet</option><option>Khulna</option><option>Rajshahi</option></select></div>
+        </div>
+        <div><label class="form-label">Delivery Note</label><input class="inp" id="b-note" placeholder="Gate color, landmark, etc."/></div>
+      </div>
+      <div style="font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--b);margin:16px 0 10px">Payment Method</div>
+      <div class="payment-opt selected" id="pay-bkash" onclick="selectPayment('bkash')"><div class="pay-radio"><div class="pay-dot"></div></div><span style="font-size:1.1rem">💜</span><div><div style="font-weight:700;font-size:.84rem;color:#fff">bKash</div><div style="font-size:.71rem;color:var(--m)">Pay via bKash mobile banking</div></div></div>
+      <div class="payment-opt" id="pay-nagad" onclick="selectPayment('nagad')"><div class="pay-radio"><div class="pay-dot"></div></div><span style="font-size:1.1rem">🟠</span><div><div style="font-weight:700;font-size:.84rem;color:#fff">Nagad</div><div style="font-size:.71rem;color:var(--m)">Pay via Nagad account</div></div></div>
+      <div class="payment-opt" id="pay-cod" onclick="selectPayment('cod')"><div class="pay-radio"><div class="pay-dot"></div></div><span style="font-size:1.1rem">💵</span><div><div style="font-weight:700;font-size:.84rem;color:#fff">Cash on Delivery</div><div style="font-size:.71rem;color:var(--m)">Pay when parts arrive</div></div></div>
+      <div class="payment-opt" id="pay-card" onclick="selectPayment('card')"><div class="pay-radio"><div class="pay-dot"></div></div><span style="font-size:1.1rem">💳</span><div><div style="font-weight:700;font-size:.84rem;color:#fff">Card / Online</div><div style="font-size:.71rem;color:var(--m)">Visa, MasterCard, DBBL</div></div></div>
+    </div>
+    <div style="padding-top:12px;border-top:1px solid var(--border);margin-top:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px"><span style="color:var(--m);font-size:.84rem">Order Total</span><span style="font-weight:800;color:#fff" id="billing-total">৳0</span></div>
+      <button class="btn-y" style="padding:12px;font-size:.9rem;justify-content:center;width:100%" onclick="placeOrder()">✅ Place Order</button>
+    </div>
+  </div>
+</div>
+
+<!-- GPS MODAL -->
+<div class="modal-overlay" id="gps-modal">
+  <div class="modal modal-lg" style="padding:22px">
+    <div class="modal-head">
+      <div><h3 style="font-weight:800;color:#fff;font-size:1.05rem">📡 Live GPS Tracking</h3><p style="color:var(--m);font-size:.76rem;margin-top:3px">Real-time technician location</p></div>
+      <button class="close-btn" onclick="closeGpsModal()">✕</button>
+    </div>
+    <div class="gps-tech-row">
+      <div class="gps-pulse-dot"></div>
+      <div style="flex:1">
+        <div style="font-weight:700;color:#fff;font-size:.88rem">Rafsan Ahmed — AC Technician</div>
+        <div style="font-size:.72rem;color:var(--m);margin-top:2px">En route to your location · <span style="color:var(--g)">ETA: <span id="gps-eta">12 min</span></span></div>
+      </div>
+      <span class="tagg" style="font-size:.65rem">Live</span>
+    </div>
+    <div style="background:var(--card2);border-radius:10px;padding:10px 14px;margin-bottom:12px;display:flex;gap:20px">
+      <div><div style="font-weight:800;color:#fff;font-size:.96rem">2.4 km</div><div style="font-size:.7rem;color:var(--m)">Distance</div></div>
+      <div><div style="font-weight:800;color:var(--y);font-size:.96rem" id="gps-eta2">12 min</div><div style="font-size:.7rem;color:var(--m)">ETA</div></div>
+      <div><div style="font-weight:800;color:var(--g);font-size:.96rem">4.9★</div><div style="font-size:.7rem;color:var(--m)">Rating</div></div>
+      <div><div style="font-weight:800;color:#fff;font-size:.96rem">AC Job</div><div style="font-size:.7rem;color:var(--m)">Service</div></div>
+    </div>
+    <div id="gps-map"></div>
+    <p style="text-align:center;color:var(--m);font-size:.72rem;margin-top:10px">🟡 Your location &nbsp;🟢 Technician &nbsp;— Simulated live movement</p>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// ══════════ DATA ══════════
+const TECHS = [
+  {id:1,name:"Rafsan Ahmed",spec:"AC & Cooling",rating:4.9,jobs:347,price:"৳500–1,200",city:"Dhaka",col:"#3B82F6",avail:true,exp:5},
+  {id:2,name:"Xefer Khan",spec:"Electronics & TV",rating:4.7,jobs:213,price:"৳400–1,000",city:"Chittagong",col:"#8B5CF6",avail:true,exp:4},
+  {id:3,name:"Simon Das",spec:"Washing Machine",rating:4.8,jobs:289,price:"৳450–900",city:"Dhaka",col:"#10B981",avail:false,exp:6},
+  {id:4,name:"Hasan Reza",spec:"TV & Screens",rating:4.6,jobs:178,price:"৳400–800",city:"Sylhet",col:"#F59E0B",avail:true,exp:3},
+  {id:5,name:"Karim Uddin",spec:"Refrigerator",rating:4.9,jobs:412,price:"৳500–2,700",city:"Khulna",col:"#EC4899",avail:true,exp:8},
+  {id:6,name:"Nabil Islam",spec:"Desktop & PC",rating:4.5,jobs:156,price:"৳400–1,500",city:"Rajshahi",col:"#14B8A6",avail:true,exp:3},
+];
+
+const PRODUCTS = [
+  // AC Parts
+  {id:1,name:"AC Compressor Filter",cat:"AC Parts",price:290,og:390,rating:4.8,rev:124,emoji:"❄️",stock:45,hot:true},
+  {id:2,name:"AC Capacitor 45µF",cat:"AC Parts",price:150,og:200,rating:4.7,rev:201,emoji:"⚡",stock:89,hot:true},
+  {id:3,name:"AC Fan Motor Blade",cat:"AC Parts",price:340,og:450,rating:4.6,rev:78,emoji:"🌀",stock:22,hot:false},
+  // Washing Machine
+  {id:4,name:"Washing Machine Belt",cat:"Washer",price:180,og:230,rating:4.7,rev:89,emoji:"🧺",stock:32,hot:false},
+  {id:5,name:"Washer Door Latch",cat:"Washer",price:220,og:290,rating:4.5,rev:54,emoji:"🔒",stock:19,hot:false},
+  // Fridge
+  {id:6,name:"Refrigerator Thermostat",cat:"Fridge",price:350,og:420,rating:4.9,rev:67,emoji:"🌡️",stock:18,hot:true},
+  {id:7,name:"Fridge Door Seal",cat:"Fridge",price:280,og:340,rating:4.8,rev:72,emoji:"🚪",stock:41,hot:false},
+  {id:8,name:"Fridge Compressor Relay",cat:"Fridge",price:420,og:540,rating:4.7,rev:33,emoji:"🔌",stock:11,hot:false},
+  // TV & Electronics
+  {id:9,name:"TV Main Board 32\"",cat:"TV Parts",price:890,og:1100,rating:4.6,rev:43,emoji:"📺",stock:12,hot:false},
+  {id:10,name:"TV Main Board 55\"",cat:"TV Parts",price:1490,og:1850,rating:4.7,rev:28,emoji:"🖥️",stock:7,hot:true},
+  {id:11,name:"LED Backlight Strip 32\"",cat:"TV Parts",price:380,og:490,rating:4.8,rev:91,emoji:"💡",stock:35,hot:true},
+  {id:12,name:"LED Backlight Strip 55\"",cat:"TV Parts",price:580,og:720,rating:4.7,rev:62,emoji:"💡",stock:24,hot:false},
+  {id:13,name:"HDMI Port Connector",cat:"TV Parts",price:120,og:170,rating:4.5,rev:147,emoji:"🔌",stock:78,hot:false},
+  {id:14,name:"Universal TV Remote",cat:"Electronics",price:180,og:240,rating:4.4,rev:215,emoji:"📡",stock:93,hot:false},
+  {id:15,name:"Smart TV WiFi Module",cat:"TV Parts",price:650,og:820,rating:4.8,rev:39,emoji:"📶",stock:14,hot:true},
+  {id:16,name:"TV Power Supply Board",cat:"TV Parts",price:780,og:950,rating:4.6,rev:51,emoji:"🔋",stock:18,hot:false},
+  // Fan / Electrical
+  {id:17,name:"Fan Motor 60W",cat:"Electrical",price:220,og:280,rating:4.8,rev:156,emoji:"💨",stock:67,hot:false},
+  {id:18,name:"Circuit Breaker 16A",cat:"Electrical",price:190,og:250,rating:4.7,rev:88,emoji:"⚡",stock:54,hot:false},
+  {id:19,name:"5-Point Extension Cord",cat:"Electrical",price:320,og:400,rating:4.6,rev:134,emoji:"🔌",stock:72,hot:false},
+  // Oven / Microwave
+  {id:20,name:"Microwave Magnetron",cat:"Oven",price:650,og:780,rating:4.5,rev:38,emoji:"📡",stock:9,hot:false},
+  {id:21,name:"Oven Heating Element",cat:"Oven",price:480,og:600,rating:4.7,rev:44,emoji:"🔥",stock:16,hot:false},
+  // Tools
+  {id:22,name:"Soldering Iron 40W Kit",cat:"Tools",price:580,og:750,rating:4.9,rev:203,emoji:"🔧",stock:48,hot:true},
+  {id:23,name:"Digital Multimeter",cat:"Tools",price:790,og:980,rating:4.8,rev:167,emoji:"🔬",stock:31,hot:true},
+  // Phone/Laptop
+  {id:24,name:"Laptop Battery Universal",cat:"Laptop",price:980,og:1250,rating:4.6,rev:76,emoji:"🔋",stock:22,hot:false},
+  {id:25,name:"Laptop Cooling Fan",cat:"Laptop",price:420,og:540,rating:4.7,rev:58,emoji:"🌀",stock:29,hot:false},
+];
+
+const CAT_DATA = [{n:"AC Repair",v:35,c:"#38BDF8"},{n:"Electronics",v:25,c:"#F5C518"},{n:"Washing",v:20,c:"#10B981"},{n:"Fridge",v:12,c:"#8B5CF6"},{n:"Others",v:8,c:"#F59E0B"}];
+const MAP_PINS = [{id:1,city:"Dhaka",x:46,y:48,jobs:1240,techs:89},{id:2,city:"Chittagong",x:70,y:70,jobs:560,techs:42},{id:3,city:"Sylhet",x:74,y:26,jobs:320,techs:28},{id:4,city:"Khulna",x:24,y:66,jobs:280,techs:24},{id:5,city:"Rajshahi",x:22,y:36,jobs:210,techs:19},{id:6,city:"Barisal",x:44,y:72,jobs:175,techs:16}];
+const ACTIVITY = [{u:"Diganto H.",a:"Posted AC repair in Dhaka",t:"2m",e:"📋",c:"#38BDF8"},{u:"Rafsan A.",a:"Completed TV repair job",t:"8m",e:"✅",c:"#10B981"},{u:"Xefer K.",a:"Accepted TV repair in Chittagong",t:"15m",e:"🔧",c:"#F5C518"},{u:"Nadia R.",a:"Purchased AC filter from Shop",t:"22m",e:"🛒",c:"#8B5CF6"},{u:"Simon D.",a:"Received 5-star review",t:"31m",e:"⭐",c:"#F59E0B"}];
+const SERVICES_DATA = [{e:"❄️",t:"AC Service",d:"Cleaning, repair & install",p:"From ৳400"},{e:"🧺",t:"Washing Machine",d:"All brands, same day",p:"From ৳400"},{e:"🌡️",t:"Refrigerator",d:"Cooling & compressor",p:"From ৳500"},{e:"📺",t:"TV & Electronics",d:"LCD, LED, Smart TV, Boards",p:"From ৳400"},{e:"💡",t:"Fan & Lights",d:"Electrical fittings",p:"From ৳350"},{e:"🖥️",t:"Desktop & PC",d:"Hardware & software",p:"From ৳400"}];
+const BOOK_DATA = [{m:"W1",v:84},{m:"W2",v:112},{m:"W3",v:94},{m:"W4",v:142},{m:"W5",v:178},{m:"W6",v:190},{m:"W7",v:224}];
+
+const SKILL_QUESTIONS = [
+  {q:"What is the most common cause of an AC not cooling properly?",opts:["Low refrigerant level","Power surge from grid","Incorrect remote setting","Dirty air filter only"],ans:0},
+  {q:"A customer's washing machine makes a loud banging sound during spin. What is the most likely cause?",opts:["Faulty door latch","Worn drum bearings or unbalanced load","Broken power cord","Clogged lint filter"],ans:1},
+  {q:"When testing a refrigerator compressor, you should check:",opts:["Only visual inspection","Voltage, amperage, and resistance with a multimeter","Water pressure","The door seal only"],ans:1},
+  {q:"A TV displays 'No Signal' but the power LED is on. First diagnostic step?",opts:["Replace the main board","Check input source and HDMI cable","Factory reset immediately","Replace the screen panel"],ans:1},
+  {q:"What is the correct safety procedure before opening an electrical appliance?",opts:["Work quickly to minimize time","Unplug the device and discharge capacitors","Only wear rubber gloves","No special steps needed for low voltage"],ans:1},
+];
+
+const MOCK_SCENARIOS = [
+  {
+    title:"Customer: 'My AC is making a rattling noise but still cooling.'",
+    question:"What is your first action?",
+    opts:[
+      {t:"Quote ৳2,000 immediately and schedule replacement","correct":false},
+      {t:"Inspect the AC unit, check for loose parts or debris, then diagnose and quote transparently","correct":true},
+      {t:"Tell customer the AC needs full replacement without inspection","correct":false},
+      {t:"Ask customer to buy new parts before visiting","correct":false},
+    ]
+  },
+  {
+    title:"Customer paid you ৳800 but you realize the real cost of parts is ৳1,200.",
+    question:"What do you do?",
+    opts:[
+      {t:"Keep the difference and use cheaper parts","correct":false},
+      {t:"Contact the customer, explain the actual cost, provide receipt and get approval before proceeding","correct":true},
+      {t:"Cancel the job without informing the customer","correct":false},
+      {t:"Ask a colleague to handle it without telling the customer","correct":false},
+    ]
+  },
+  {
+    title:"A customer is unhappy with your repair and says the problem returned.",
+    question:"Best response?",
+    opts:[
+      {t:"Ignore the complaint and move on","correct":false},
+      {t:"Blame the customer for misuse","correct":false},
+      {t:"Return promptly, re-diagnose for free, fix the issue or offer a refund","correct":true},
+      {t:"Tell them to post a new repair request and pay again","correct":false},
+    ]
+  }
+];
+
+// ══════════ STATE ══════════
+let cart = [];
+let posts = [
+  {id:100,user:"Diganto H.",col:"#3B82F6",t:"AC not cooling properly in bedroom",c:"AC Repair",city:"Dhaka",bids:3,time:"2m ago",desc:"My split AC stopped cooling. Running for 3 hours but room temp doesn't drop below 30°C.",bids_data:[{name:"Rafsan Ahmed",price:"৳750",msg:"I can fix this same day. Likely low refrigerant or clogged filter. Will diagnose for free.",col:"#3B82F6",time:"1m ago"},{name:"Faisal Islam",price:"৳600",msg:"Have 5 years experience with split ACs. Can come within 2 hours.",col:"#10B981",time:"4m ago"},{name:"Jalal Hossain",price:"৳900",msg:"Will need to check refrigerant level and coils. Includes full servicing.",col:"#F59E0B",time:"8m ago"}],comments:[{name:"Rafsan Ahmed",col:"#3B82F6",text:"What brand is the AC? Samsung or Gree models often have sensor issues.",time:"3m ago"},{name:"Faisal I.",col:"#10B981",text:"Is the outdoor unit fan spinning? Please check and let us know.",time:"5m ago"}]},
+  {id:101,user:"Nadia R.",col:"#10B981",t:"Washing machine making loud noise during spin",c:"Washing Machine",city:"Dhaka",bids:2,time:"10m ago",desc:"Samsung front loader makes terrible banging during spin cycle. Started 2 days ago.",bids_data:[{name:"Simon Das",price:"৳550",msg:"Sounds like drum bearing issue. Can fix same day.",col:"#10B981",time:"6m ago"},{name:"Rana Mia",price:"৳480",msg:"I specialize in Samsung washers. Probably the drum or spider arm.",col:"#8B5CF6",time:"12m ago"}],comments:[{name:"Simon Das",col:"#10B981",text:"How old is the machine? And is the banging during high spin or low?",time:"8m ago"}]},
+  {id:102,user:"Imran K.",col:"#8B5CF6",t:"Samsung 55\" TV screen flickering",c:"TV & Screens",city:"Chittagong",bids:1,time:"28m ago",desc:"Random horizontal lines appear and screen flickers. Happens more when TV is hot.",bids_data:[{name:"Xefer Khan",price:"৳1,200",msg:"This is likely a T-CON board issue. I have the part in stock. Can fix today.",col:"#8B5CF6",time:"20m ago"}],comments:[{name:"Xefer Khan",col:"#8B5CF6",text:"Does the flickering start immediately or after 10-15 minutes of use?",time:"22m ago"},{name:"Hasan Reza",col:"#F59E0B",text:"Could also be backlight strip issue on 55\" panels. I can diagnose.",time:"25m ago"}]},
+];
+let activeCat = "All";
+let bookingTech = null;
+let mapPin = null;
+let selectedPayment = 'bkash';
+let currentTechStep = 0;
+let quizAnswers = [];
+let quizCurrent = 0;
+let mockAnswers = [];
+let gpsMap = null;
+let gpsInterval = null;
+let nidUploaded_front = false;
+let nidUploaded_back = false;
+
+// ══════════ NAVBAR ══════════
+window.addEventListener("scroll", () => {
+  document.getElementById("navbar").classList.toggle("scrolled", window.scrollY > 30);
+});
+
+// ══════════ PAGE NAV ══════════
+function showPage(name) {
+  document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-link").forEach(l => l.classList.remove("active"));
+  document.getElementById("page-" + name).classList.add("active");
+  document.querySelector(`[data-page="${name}"]`)?.classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(name==="fixfeed") renderTechs();
+  if(name==="shop") renderProducts();
+  if(name==="dashboard") renderDashboard();
+  if(name==="become-tech") initBecomeTech();
+}
+
+// ══════════ HERO PARTICLES ══════════
+(function(){
+  const canvas = document.getElementById("hero-canvas");
+  if(!canvas) return;
+  const ctx = canvas.getContext("2d");
+  let particles = [];
+  function resize(){canvas.width=canvas.offsetWidth;canvas.height=canvas.offsetHeight;}
+  resize();
+  window.addEventListener("resize", resize);
+  for(let i=0;i<60;i++){
+    particles.push({x:Math.random()*canvas.width,y:Math.random()*canvas.height,r:Math.random()*1.5+.5,vx:(Math.random()-.5)*.4,vy:(Math.random()-.5)*.4,o:Math.random()*.5+.1});
+  }
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<0)p.x=canvas.width;if(p.x>canvas.width)p.x=0;
+      if(p.y<0)p.y=canvas.height;if(p.y>canvas.height)p.y=0;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(245,197,24,${p.o})`;ctx.fill();
+    });
+    // Draw connecting lines between close particles
+    for(let i=0;i<particles.length;i++){
+      for(let j=i+1;j<particles.length;j++){
+        const dx=particles[i].x-particles[j].x,dy=particles[i].y-particles[j].y;
+        const dist=Math.sqrt(dx*dx+dy*dy);
+        if(dist<80){
+          ctx.beginPath();ctx.moveTo(particles[i].x,particles[i].y);ctx.lineTo(particles[j].x,particles[j].y);
+          ctx.strokeStyle=`rgba(56,189,248,${.08*(1-dist/80)})`;ctx.lineWidth=.5;ctx.stroke();
+        }
+      }
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ══════════ WORD CYCLE ══════════
+const words = ["Smarter","Faster","Safer","Better"];
+let wi = 0;
+setInterval(() => {
+  wi = (wi+1) % words.length;
+  const el = document.getElementById("word-cycle");
+  if(el){ el.style.animation="none"; el.textContent = words[wi]; void el.offsetWidth; el.style.animation="wordCycle 2.2s ease infinite"; }
+}, 2200);
+
+// ══════════ COUNTER ANIMATION ══════════
+function animateCount(el, target) {
+  let v = 0; const step = target/80;
+  const t = setInterval(() => {
+    v += step;
+    if(v >= target) { el.textContent = target.toLocaleString(); clearInterval(t); }
+    else el.textContent = Math.floor(v).toLocaleString();
+  }, 16);
+}
+const statObs = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if(e.isIntersecting){
+      animateCount(document.getElementById("cnt1"), 1240);
+      animateCount(document.getElementById("cnt2"), 89);
+      animateCount(document.getElementById("cnt3"), 4200);
+      animateCount(document.getElementById("cnt4"), 98);
+      statObs.disconnect();
+    }
+  });
+}, {threshold:.3});
+const sb = document.querySelector(".stat-bar");
+if(sb) statObs.observe(sb);
+
+// ══════════ SERVICES ══════════
+const sg = document.getElementById("services-grid");
+if(sg) SERVICES_DATA.forEach((s,i) => {
+  sg.innerHTML += `<div class="card lift service-card" onclick="showPage('fixfeed')" style="animation:fadeUp .45s ${i*.07}s ease both;opacity:0"><div class="service-icon">${s.e}</div><h3 class="service-name">${s.t}</h3><p class="service-desc">${s.d}</p><span class="service-price">${s.p}</span></div>`;
+});
+
+// ══════════ TOAST ══════════
+function toast(msg, type="success") {
+  const tc = document.getElementById("toast-container");
+  const id = "t" + Date.now();
+  const ico = type==="error"?"✗":type==="warn"?"⚠":"✓";
+  const div = document.createElement("div");
+  div.className = "toast" + (type!=="success"?" "+type:"");
+  div.id = id;
+  div.innerHTML = `<span style="color:${type==="error"?"#EF4444":type==="warn"?"#F59E0B":"#10B981"}">${ico}</span>${msg}`;
+  tc.appendChild(div);
+  setTimeout(() => { const el = document.getElementById(id); if(el) el.remove(); }, 3200);
+}
+
+// ══════════ NOTIF ══════════
+function clearNotif() { document.getElementById("notif-badge").style.display="none"; }
+
+// ══════════ CART ══════════
+function openCart() {
+  document.getElementById("cart-overlay").classList.add("open");
+  document.getElementById("cart-drawer").classList.add("open");
+  renderCart();
+}
+function closeCart() {
+  document.getElementById("cart-overlay").classList.remove("open");
+  document.getElementById("cart-drawer").classList.remove("open");
+}
+function updateCartBadge() {
+  const total = cart.reduce((s,i)=>s+i.qty,0);
+  const badge = document.getElementById("cart-count-badge");
+  if(total > 0) { badge.textContent = total; badge.style.display=""; } else badge.style.display="none";
+}
+function addToCart(id) {
+  const p = PRODUCTS.find(x=>x.id===id);
+  const ex = cart.find(x=>x.id===id);
+  if(ex) ex.qty++;
+  else cart.push({...p, qty:1});
+  updateCartBadge(); renderProducts();
+  toast(`${p.name} added to cart 🛒`);
+}
+function changeQty(id, d) {
+  const ex = cart.find(x=>x.id===id);
+  if(ex) { ex.qty += d; if(ex.qty<=0) cart = cart.filter(x=>x.id!==id); }
+  updateCartBadge(); renderCart(); renderProducts();
+}
+function renderCart() {
+  const body = document.getElementById("cart-body");
+  const foot = document.getElementById("cart-foot");
+  const cnt = cart.reduce((s,i)=>s+i.qty,0);
+  document.getElementById("cart-drawer-count").textContent = cnt > 0 ? `(${cnt})` : "";
+  if(cart.length===0){
+    if(body) body.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;gap:11px;color:var(--m)"><div style="font-size:2.2rem;opacity:.4">🛒</div><p style="font-size:.88rem">Your cart is empty</p><button class="btn-y" style="padding:9px 20px;font-size:.82rem" onclick="closeCart();showPage('shop')">Browse Shop →</button></div>`;
+    if(foot) foot.style.display="none"; return;
+  }
+  if(body) body.innerHTML = cart.map(item=>`
+    <div class="cart-item">
+      <div class="cart-emoji">${item.emoji}</div>
+      <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:.82rem;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.name}</div><div style="color:var(--y);font-weight:700;font-size:.86rem;margin-top:2px">৳${item.price}</div></div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <button class="qty-btn" onclick="changeQty(${item.id},-1)">−</button>
+        <span style="font-weight:700;font-size:.86rem;min-width:14px;text-align:center">${item.qty}</span>
+        <button class="qty-btn" onclick="changeQty(${item.id},1)">+</button>
+      </div>
+    </div>`).join("");
+  const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
+  document.getElementById("cart-total").textContent = "৳" + total;
+  document.getElementById("billing-total").textContent = "৳" + total;
+  if(foot) foot.style.display="block";
+}
+function showBillingForm() {
+  document.getElementById("cart-view").classList.remove("active");
+  document.getElementById("billing-view").classList.add("active");
+  document.querySelector('.cart-drawer .drawer-body') && null;
+}
+function showCartView() {
+  document.getElementById("cart-view").classList.add("active");
+  document.getElementById("billing-view").classList.remove("active");
+}
+function selectPayment(method) {
+  selectedPayment = method;
+  ['bkash','nagad','cod','card'].forEach(m => {
+    const el = document.getElementById('pay-'+m);
+    if(el) el.classList.toggle('selected', m===method);
+  });
+}
+function placeOrder() {
+  const name = document.getElementById("b-name")?.value.trim();
+  const phone = document.getElementById("b-phone")?.value.trim();
+  const addr = document.getElementById("b-addr")?.value.trim();
+  if(!name||!phone||!addr){ toast("Please fill your name, phone & address","warn"); return; }
+  const body = document.getElementById("billing-view");
+  body.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:14px;text-align:center;padding:20px">
+    <div style="width:70px;height:70px;background:rgba(16,185,129,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.2rem">✅</div>
+    <h3 style="font-weight:800;color:#fff;font-size:1.15rem">Order Placed! 🎉</h3>
+    <p style="color:var(--m);font-size:.84rem;max-width:240px">Delivering to <strong style="color:#fff">${addr}</strong>. Parts arrive in 2–4 hours.</p>
+    <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:.78rem;color:var(--m)">🎫 Order ID: <strong style="color:#fff">FX-${Date.now().toString().slice(-6)}</strong></div>
+    <div style="background:var(--card2);border-radius:10px;padding:9px 14px;font-size:.78rem;color:var(--m)">💳 Payment: <strong style="color:var(--y)">${selectedPayment==='bkash'?'bKash':selectedPayment==='nagad'?'Nagad':selectedPayment==='cod'?'Cash on Delivery':'Card/Online'}</strong></div>
+  </div>`;
+  cart=[]; updateCartBadge(); renderProducts();
+  toast("Order placed successfully! 🎉");
+  setTimeout(closeCart, 3000);
+}
+
+// ══════════ FIX-FEED ══════════
+function renderTechs() {
+  const s = document.getElementById("tech-search")?.value.toLowerCase()||"";
+  const city = document.getElementById("city-filter")?.value||"";
+  const spec = document.getElementById("spec-filter")?.value||"";
+  const filtered = TECHS.filter(t=>(!city||t.city===city)&&(!spec||t.spec===spec)&&(!s||t.name.toLowerCase().includes(s)||t.spec.toLowerCase().includes(s)));
+  document.getElementById("tech-count").textContent = filtered.length + " found";
+  const grid = document.getElementById("techs-grid");
+  if(!grid) return;
+  if(!filtered.length){ grid.innerHTML=`<div class="empty-state"><div class="empty-icon">🔍</div><p>No technicians match your filters.</p></div>`; renderPosts(); return; }
+  grid.innerHTML = filtered.map((t,i)=>`
+    <div class="card lift tech-card" style="animation:fadeUp .4s ${i*.06}s ease both;opacity:0">
+      <div class="tech-header">
+        <div style="display:flex;gap:10px;align-items:center">
+          <div class="tech-avatar" style="background:${t.col}">${t.name[0]}</div>
+          <div><div class="tech-name">${t.name}</div><div class="tech-spec">${t.spec}</div></div>
+        </div>
+        <div class="avail-badge" style="background:${t.avail?"rgba(16,185,129,.1)":"rgba(239,68,68,.1)"};color:${t.avail?"#10B981":"#EF4444"}">
+          <span class="avail-dot"></span>${t.avail?"Available":"Busy"}
+        </div>
+      </div>
+      <div class="tech-stats">
+        <div class="tech-stat"><div class="tech-stat-val">${t.rating}★</div><div class="tech-stat-lbl">Rating</div></div>
+        <div class="tech-stat"><div class="tech-stat-val">${t.jobs}+</div><div class="tech-stat-lbl">Jobs</div></div>
+        <div class="tech-stat"><div class="tech-stat-val">${t.exp}yr</div><div class="tech-stat-lbl">Exp</div></div>
+      </div>
+      <div class="tech-meta">
+        <div><div style="font-size:.66rem;color:var(--m);margin-bottom:2px">Price Range</div><div class="tech-price">${t.price}</div></div>
+        <div style="text-align:right"><div style="font-size:.66rem;color:var(--m);margin-bottom:2px">Location</div><div class="tech-city">📍 ${t.city}</div></div>
+      </div>
+      <button class="${t.avail?"btn-y":"btn-b"}" style="width:100%;padding:9px;font-size:.82rem;justify-content:center" onclick="${t.avail?`openBookingModal(${t.id})`:`toast('${t.name} is busy. Try again later.','warn')`}">
+        ${t.avail?"🔧 Book Now":"⏳ Currently Busy"}
+      </button>
+    </div>`).join("");
+  renderPosts();
+}
+function filterTechs() { renderTechs(); }
+
+function renderPosts() {
+  const scroll = document.getElementById("posts-scroll");
+  if(!scroll) return;
+  scroll.innerHTML = posts.map(p=>`
+    <div class="post-card" onclick="openPostDetail(${p.id})">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:6px">
+        <div class="live-avatar" style="background:${p.col}">${p.user[0]}</div>
+        <span style="font-size:.74rem;font-weight:600;color:#fff">${p.user}</span>
+        <span style="font-size:.64rem;color:var(--m);margin-left:auto">${p.time}</span>
+      </div>
+      <p style="font-size:.76rem;color:var(--t);margin-bottom:7px;line-height:1.35">${p.t}</p>
+      <div style="display:flex;gap:5px;align-items:center">
+        <span class="tag" style="font-size:.6rem;padding:2px 6px">${p.c}</span>
+        <span class="tagb" style="font-size:.6rem;padding:2px 6px">💰 ${p.bids_data?p.bids_data.length:p.bids} bids</span>
+        <span style="font-size:.62rem;color:var(--m);margin-left:auto">💬 ${p.comments?p.comments.length:0}</span>
+      </div>
+    </div>`).join("");
+}
+
+function openPostDetail(postId) {
+  const p = posts.find(x=>x.id===postId);
+  if(!p) return;
+  const inner = document.getElementById("post-detail-inner");
+  const bidHTML = (p.bids_data||[]).map(b=>`
+    <div class="bid-card">
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px">
+        <div class="live-avatar" style="background:${b.col};width:28px;height:28px">${b.name[0]}</div>
+        <div><div style="font-weight:700;color:#fff;font-size:.82rem">${b.name}</div><div style="font-size:.68rem;color:var(--m)">${b.time}</div></div>
+        <div class="bid-price" style="margin-left:auto">${b.price}</div>
+      </div>
+      <p style="font-size:.78rem;color:var(--t);line-height:1.45">${b.msg}</p>
+      <button class="btn-y" style="margin-top:8px;padding:7px 14px;font-size:.76rem" onclick="closePostDetail();openBookingModal(1)">Accept Bid →</button>
+    </div>`).join("");
+  const commHTML = (p.comments||[]).map(c=>`
+    <div class="comment-item">
+      <div class="comment-avatar" style="background:${c.col}">${c.name[0]}</div>
+      <div>
+        <div><span class="comment-name">${c.name}</span><span class="comment-time">${c.time}</span></div>
+        <div class="comment-text">${c.text}</div>
+      </div>
+    </div>`).join("");
+  inner.innerHTML = `
+    <div class="modal-head">
+      <div>
+        <h3 style="font-weight:800;color:#fff;font-size:1rem;margin-bottom:4px">📋 Repair Request</h3>
+        <div style="display:flex;gap:6px"><span class="tag" style="font-size:.6rem">${p.c}</span><span class="tagb" style="font-size:.6rem">📍 ${p.city}</span></div>
+      </div>
+      <button class="close-btn" onclick="closePostDetail()">✕</button>
+    </div>
+    <div style="background:var(--card2);border-radius:11px;padding:12px 14px;margin-bottom:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div class="live-avatar" style="background:${p.col};width:28px;height:28px">${p.user[0]}</div>
+        <span style="font-weight:700;color:#fff;font-size:.84rem">${p.user}</span>
+        <span style="font-size:.68rem;color:var(--m);margin-left:auto">${p.time}</span>
+      </div>
+      <h4 style="font-weight:700;color:#fff;font-size:.88rem;margin-bottom:5px">${p.t}</h4>
+      <p style="font-size:.78rem;color:var(--m);line-height:1.5">${p.desc||'No additional description.'}</p>
+    </div>
+    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--y);margin-bottom:10px">💰 Technician Bids (${(p.bids_data||[]).length})</div>
+    ${bidHTML||'<p style="color:var(--m);font-size:.82rem">No bids yet.</p>'}
+    <div style="font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--b);margin:14px 0 10px">💬 Comments &amp; Questions (${(p.comments||[]).length})</div>
+    <div id="comments-list">${commHTML||'<p style="color:var(--m);font-size:.82rem;margin-bottom:10px">No comments yet.</p>'}</div>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <input class="inp" id="new-comment-inp" placeholder="Write a comment or bid message…" style="flex:1;font-size:.82rem"/>
+      <button class="btn-b" style="padding:9px 14px;font-size:.8rem;flex-shrink:0" onclick="addComment(${p.id})">Send</button>
+    </div>`;
+  document.getElementById("post-detail-modal").classList.add("open");
+}
+function addComment(postId) {
+  const inp = document.getElementById("new-comment-inp");
+  const text = inp?.value.trim();
+  if(!text){ toast("Write a comment first","warn"); return; }
+  const p = posts.find(x=>x.id===postId);
+  if(!p) return;
+  if(!p.comments) p.comments=[];
+  p.comments.push({name:"You",col:"#F5C518",text,time:"just now"});
+  const list = document.getElementById("comments-list");
+  if(list){
+    list.innerHTML += `<div class="comment-item"><div class="comment-avatar" style="background:#F5C518">Y</div><div><div><span class="comment-name">You</span><span class="comment-time">just now</span></div><div class="comment-text">${text}</div></div></div>`;
+  }
+  inp.value = "";
+  toast("Comment added ✅");
+}
+function closePostDetail() { document.getElementById("post-detail-modal").classList.remove("open"); }
+
+function openPostModal() { document.getElementById("post-modal").classList.add("open"); }
+function closePostModal() { document.getElementById("post-modal").classList.remove("open"); }
+function submitPost() {
+  const title = document.getElementById("post-title").value.trim();
+  const desc = document.getElementById("post-desc").value.trim();
+  if(!title||!desc){ toast("Fill title & description","warn"); return; }
+  const btn = document.getElementById("post-submit-btn");
+  btn.textContent="Posting…"; btn.disabled=true;
+  setTimeout(()=>{
+    const newPost = {id:Date.now(),user:"You",col:"#F5C518",t:title,c:document.getElementById("post-cat").value,city:document.getElementById("post-city").value,bids:0,time:"just now",desc,bids_data:[],comments:[]};
+    posts.unshift(newPost);
+    renderPosts();
+    closePostModal();
+    btn.textContent="Post Request"; btn.disabled=false;
+    document.getElementById("post-title").value="";
+    document.getElementById("post-desc").value="";
+    toast("✅ Post is live! Techs will respond soon.");
+    // Simulate a bid coming in
+    setTimeout(()=>{
+      newPost.bids_data.push({name:"Rafsan Ahmed",price:"৳700–900",msg:"I can look at this. What's the exact problem?",col:"#3B82F6",time:"just now"});
+      renderPosts();
+      toast("🔧 Rafsan Ahmed bid on your post!");
+    }, 4000);
+  },1300);
+}
+
+// ══════════ BOOKING MODAL ══════════
+function openBookingModal(techId) {
+  bookingTech = TECHS.find(t=>t.id===techId);
+  const inner = document.getElementById("booking-modal-inner");
+  inner.innerHTML = `
+    <div class="modal-head">
+      <div><h2 style="font-weight:800;font-size:1.05rem;color:#fff;margin-bottom:4px">Book ${bookingTech.name}</h2><div style="display:flex;gap:6px;align-items:center"><span class="tagb">${bookingTech.spec}</span><span style="color:var(--y);font-size:.78rem;font-weight:700">★ ${bookingTech.rating}</span></div></div>
+      <button class="close-btn" onclick="closeBookingModal()">✕</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="form-row">
+        <div><label class="form-label">DATE</label><input type="date" class="inp" id="bk-date" min="${new Date().toISOString().split('T')[0]}"/></div>
+        <div><label class="form-label">TIME</label><select class="inp" id="bk-time"><option value="">Select</option><option>08:00 AM</option><option>10:00 AM</option><option>12:00 PM</option><option>02:00 PM</option><option>04:00 PM</option><option>06:00 PM</option></select></div>
+      </div>
+      <div><label class="form-label">ADDRESS *</label><input class="inp" id="bk-addr" placeholder="Full address with flat/house no."/></div>
+      <div><label class="form-label">PHONE *</label><input class="inp" id="bk-phone" placeholder="01XXXXXXXXX"/></div>
+      <div><label class="form-label">DESCRIBE PROBLEM</label><textarea class="inp" rows="3" id="bk-desc" placeholder="Describe the issue…" style="resize:none"></textarea></div>
+      <div style="background:var(--card2);border-radius:9px;padding:9px 12px;font-size:.78rem;color:var(--m)">💰 Range: <strong style="color:var(--y)">${bookingTech.price}</strong> · Fixify fee: 8% only</div>
+      <button class="btn-y" style="padding:12px;font-size:.88rem;justify-content:center;width:100%" id="bk-submit-btn" onclick="submitBooking()">Confirm Booking</button>
+    </div>`;
+  document.getElementById("booking-modal").classList.add("open");
+}
+function closeBookingModal() { document.getElementById("booking-modal").classList.remove("open"); }
+function submitBooking() {
+  const addr = document.getElementById("bk-addr").value.trim();
+  const phone = document.getElementById("bk-phone").value.trim();
+  const time = document.getElementById("bk-time").value || "10:00 AM";
+  if(!addr||!phone){ toast("Fill address & phone","warn"); return; }
+  const btn = document.getElementById("bk-submit-btn");
+  btn.textContent="Booking…"; btn.disabled=true;
+  setTimeout(()=>{
+    document.getElementById("booking-modal-inner").innerHTML = `
+      <div class="success-box">
+        <div class="success-icon" style="background:rgba(16,185,129,.1)">✅</div>
+        <h2 style="font-weight:800;font-size:1.3rem;color:#fff">Booking Confirmed! 🎉</h2>
+        <p style="color:var(--m);font-size:.86rem;line-height:1.6"><strong style="color:#fff">${bookingTech.name}</strong> is on the way.<br>Expected at <strong style="color:var(--y)">${time}</strong></p>
+        <div style="background:var(--card2);border-radius:10px;padding:11px 15px;width:100%;text-align:left">
+          <div style="color:var(--m);font-size:.76rem;margin-bottom:3px">📍 ${addr}</div>
+          <div style="color:var(--m);font-size:.76rem">📞 ${phone}</div>
+        </div>
+        <button class="btn-b" style="padding:9px 20px;font-size:.84rem" onclick="closeBookingModal();openGpsModal()">📡 Track Technician</button>
+        <button class="btn-y" style="padding:10px 28px;font-size:.86rem" onclick="closeBookingModal()">Done ✓</button>
+      </div>`;
+    toast(`Booking confirmed with ${bookingTech.name}! ✅`);
+  },1600);
+}
+
+// ══════════ SHOP ══════════
+function renderProducts() {
+  const s = document.getElementById("prod-search")?.value.toLowerCase() || "";
+  const sort = document.getElementById("sort-select")?.value || "popular";
+  let prods = PRODUCTS.filter(p=>(activeCat==="All"||p.cat===activeCat)&&(!s||p.name.toLowerCase().includes(s)));
+  if(sort==="price-asc") prods.sort((a,b)=>a.price-b.price);
+  else if(sort==="price-desc") prods.sort((a,b)=>b.price-a.price);
+  else if(sort==="rating") prods.sort((a,b)=>b.rating-a.rating);
+  const grid = document.getElementById("products-grid");
+  if(!grid) return;
+  grid.innerHTML = prods.map((p,i)=>{
+    const ic = cart.find(x=>x.id===p.id);
+    const disc = Math.round((1-p.price/p.og)*100);
+    return `
+      <div class="card lift product-card" style="animation:fadeUp .4s ${i*.04}s ease both;opacity:0">
+        <div class="product-img">
+          <div class="product-emoji">${p.emoji}</div>
+          ${p.hot?`<span class="tag hot-badge" style="font-size:.58rem;padding:2px 6px">HOT</span>`:""}
+          <span class="discount-badge">-${disc}%</span>
+        </div>
+        <div class="product-body">
+          <div class="product-cat">${p.cat}</div>
+          <h3 class="product-name">${p.name}</h3>
+          <div style="display:flex;align-items:center;gap:4px;margin-bottom:8px">
+            <span class="product-rating">★ ${p.rating}</span>
+            <span class="product-revs">(${p.rev})</span>
+            <span class="product-stock" style="color:${p.stock<15?"var(--r)":"var(--g)"};margin-left:auto">${p.stock<15?"⚠ Low":p.stock+" left"}</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
+            <span class="product-price">৳${p.price}</span>
+            <span class="product-og">৳${p.og}</span>
+          </div>
+          <button onclick="addToCart(${p.id})" class="${ic?"btn-b":"btn-y"}" style="width:100%;padding:8px;font-size:.78rem;justify-content:center">
+            ${ic?`✓ In Cart (${ic.qty})`:"🛒 Add to Cart"}
+          </button>
+        </div>
+      </div>`;
+  }).join("") || `<div class="empty-state"><div class="empty-icon">📦</div><p>No products found.</p></div>`;
+  // Category buttons
+  const cf = document.getElementById("cat-filters");
+  if(cf && cf.children.length===0){
+    ["All","AC Parts","Washer","Fridge","TV Parts","Electronics","Electrical","Oven","Tools","Laptop"].forEach(c=>{
+      const btn = document.createElement("button");
+      btn.className = "cat-btn" + (c===activeCat?" active":"");
+      btn.textContent = c;
+      btn.onclick = ()=>{ activeCat=c; document.querySelectorAll(".cat-btn").forEach(b=>b.classList.remove("active")); btn.classList.add("active"); renderProducts(); };
+      cf.appendChild(btn);
+    });
+  }
+}
+function filterProducts() { renderProducts(); }
+
+// ══════════ DASHBOARD ══════════
+let dashRendered = false;
+function renderDashboard() {
+  if(dashRendered) return;
+  dashRendered = true;
+  // Stat cards — customer-oriented (no revenue)
+  const sc = document.getElementById("dash-stat-cards");
+  sc.innerHTML = "";
+  [
+    ["📋","My Bookings","24","+3 this week","#38BDF8"],
+    ["✅","Completed Jobs","21","96% success","#10B981"],
+    ["🛒","Orders Placed","7","+2 this month","#F5C518"],
+    ["⭐","My Avg Rating","4.9★","Top customer","#8B5CF6"]
+  ].forEach((s,i)=>{
+    sc.innerHTML += `<div class="card lift stat-card" style="animation:fadeUp .4s ${i*.07}s ease both;opacity:0"><div class="stat-card-top"><span style="font-size:1.3rem">${s[0]}</span><span style="background:${s[4]}18;color:${s[4]};font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:20px">${s[3]}</span></div><div class="stat-card-val">${s[2]}</div><div class="stat-card-lbl">${s[1]}</div></div>`;
+  });
+  // Bookings bar chart
+  const rc = document.getElementById("book-chart");
+  const max = Math.max(...BOOK_DATA.map(d=>d.v));
+  BOOK_DATA.forEach(d=>{
+    rc.innerHTML += `<div class="chart-bar-wrap"><div class="chart-bar" style="height:${Math.round(d.v/max*90)}px" title="${d.v} bookings"></div><div class="chart-bar-lbl">${d.m}</div></div>`;
+  });
+  // Pie
+  const pc = document.getElementById("pie-chart");
+  pc.innerHTML = `
+    <svg width="110" height="110" viewBox="0 0 36 36">
+      ${(()=>{let s=0;return CAT_DATA.map(d=>{const a=d.v/100*360;const r=14;const x1=18+r*Math.sin(s*Math.PI/180),y1=18-r*Math.cos(s*Math.PI/180),x2=18+r*Math.sin((s+a)*Math.PI/180),y2=18-r*Math.cos((s+a)*Math.PI/180);const large=a>180?1:0;const p=`M18 18 L${x1} ${y1} A${r} ${r} 0 ${large} 1 ${x2} ${y2} Z`;s+=a;return`<path d="${p}" fill="${d.c}" opacity=".85"/>`;}).join("");})()}
+      <circle cx="18" cy="18" r="9" fill="#161829"/>
+    </svg>
+    <div class="pie-legend">${CAT_DATA.map(d=>`<div class="pie-row"><div class="pie-dot" style="background:${d.c}"></div><span class="pie-name">${d.n}</span><span class="pie-pct">${d.v}%</span></div>`).join("")}</div>`;
+  // Map
+  const svg = document.getElementById("map-svg");
+  MAP_PINS.forEach(p=>{
+    const isDhaka = p.city==="Dhaka";
+    const r = isDhaka ? 4.2 : 3;
+    const g = document.createElementNS("http://www.w3.org/2000/svg","g");
+    g.style.cursor="pointer";
+    g.innerHTML = `<circle cx="${p.x}" cy="${p.y}" r="${r+1.5}" fill="transparent" stroke="rgba(245,197,24,.2)" stroke-width="1.5"/><circle cx="${p.x}" cy="${p.y}" r="${r}" fill="rgba(245,197,24,.85)" stroke="#F5C518" stroke-width=".4"/><text x="${p.x}" y="${p.y-(r+2.2)}" text-anchor="middle" fill="#DDE1F5" font-size="2.8" font-family="Plus Jakarta Sans,sans-serif" font-weight="600">${p.city}</text>`;
+    g.onclick = ()=>{
+      const popup = document.getElementById("map-popup");
+      if(mapPin===p.id){ popup.style.display="none"; mapPin=null; }
+      else{ mapPin=p.id; popup.style.display="block"; popup.innerHTML=`<div style="font-weight:700;color:var(--y);font-size:.8rem;margin-bottom:5px">📍 ${p.city}</div><div style="display:flex;gap:16px"><div><div style="font-weight:800;color:#fff;font-size:.86rem">${p.jobs.toLocaleString()}</div><div style="color:var(--m);font-size:.65rem">Total Jobs</div></div><div><div style="font-weight:800;color:#fff;font-size:.86rem">${p.techs}</div><div style="color:var(--m);font-size:.65rem">Technicians</div></div></div>`; }
+    };
+    svg.appendChild(g);
+  });
+  // Activity
+  const al = document.getElementById("activity-list");
+  ACTIVITY.forEach((a,i)=>{
+    al.innerHTML += `<div class="activity-item" style="animation:fadeUp .3s ${i*.07}s ease both;opacity:0"><div class="activity-ico" style="background:${a.c}18">${a.e}</div><div style="flex:1;min-width:0"><div style="font-weight:600;color:#fff;font-size:.77rem">${a.u}</div><div style="color:var(--m);font-size:.7rem;line-height:1.35;margin-top:1px">${a.a}</div></div><span style="color:var(--m);font-size:.64rem;flex-shrink:0;margin-top:2px">${a.t}</span></div>`;
+  });
+  // Mini chart
+  const mc = document.getElementById("mini-chart");
+  const bk = [84,112,94,142,178,190,224];
+  const bmax = Math.max(...bk);
+  bk.forEach((v,i)=>{
+    mc.innerHTML += `<div style="display:flex;flex-direction:column;align-items:center;flex:1;gap:2px"><div style="background:linear-gradient(to top,#38BDF8,rgba(56,189,248,.3));border-radius:3px 3px 0 0;width:100%;height:${Math.round(v/bmax*50)}px"></div><div style="font-size:.58rem;color:var(--m)">${BOOK_DATA[i].m}</div></div>`;
+  });
+  // Live count updater
+  setInterval(()=>{
+    const lc = document.getElementById("live-count-dash");
+    if(lc){ const n=Math.max(30,47+Math.floor(Math.random()*11-5)); lc.textContent=n+" Live Jobs"; }
+  }, 2500);
+}
+
+// ══════════ GPS TRACKING ══════════
+function openGpsModal() {
+  document.getElementById("gps-modal").classList.add("open");
+  setTimeout(initGpsMap, 200);
+}
+function closeGpsModal() {
+  document.getElementById("gps-modal").classList.remove("open");
+  if(gpsInterval) { clearInterval(gpsInterval); gpsInterval=null; }
+}
+function initGpsMap() {
+  if(gpsMap) { gpsMap.invalidateSize(); return; }
+  try {
+    gpsMap = L.map("gps-map", {zoomControl:true, attributionControl:false}).setView([23.7461, 90.3742], 13);
+    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
+      maxZoom:19, attribution:"© OpenStreetMap, © CARTO"
+    }).addTo(gpsMap);
+
+    const custLatLng = [23.7461, 90.3742];
+    let techLatLng = [23.7680, 90.3510];
+
+    const makeIcon = (color, emoji) => L.divIcon({
+      html:`<div style="background:${color};width:36px;height:36px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 16px ${color}88;display:flex;align-items:center;justify-content:center;font-size:16px">${emoji}</div>`,
+      iconSize:[36,36],iconAnchor:[18,18],className:""
+    });
+
+    L.marker(custLatLng, {icon:makeIcon("#F5C518","🏠")}).addTo(gpsMap).bindPopup("<b>📍 Your Location</b><br>Dhanmondi, Dhaka").openPopup();
+    const techMarker = L.marker(techLatLng, {icon:makeIcon("#10B981","🔧")}).addTo(gpsMap).bindPopup("<b>🔧 Rafsan Ahmed</b><br>AC Technician · En Route");
+
+    L.polyline([techLatLng, custLatLng], {color:"#38BDF8",weight:3,opacity:.6,dashArray:"8,6"}).addTo(gpsMap);
+
+    let step = 0, total = 24;
+    gpsInterval = setInterval(()=>{
+      if(step >= total) { clearInterval(gpsInterval); toast("Technician has arrived! 🎉"); return; }
+      step++;
+      const lat = techLatLng[0] + (custLatLng[0]-techLatLng[0])*(step/total);
+      const lng = techLatLng[1] + (custLatLng[1]-techLatLng[1])*(step/total);
+      techMarker.setLatLng([lat, lng]);
+      const rem = Math.ceil((total-step)*0.5);
+      const e1 = document.getElementById("gps-eta");
+      const e2 = document.getElementById("gps-eta2");
+      if(e1) e1.textContent = rem + " min";
+      if(e2) e2.textContent = rem + " min";
+    }, 1500);
+  } catch(e) {
+    document.getElementById("gps-map").innerHTML = `<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--m);font-size:.88rem;background:var(--card2);border-radius:12px">⚠ Map requires internet connection</div>`;
+  }
+}
+
+// ══════════ BECOME TECH ══════════
+function initBecomeTech() {
+  currentTechStep = 0;
+  updateWizard(0);
+  initQuiz();
+  initMockTest();
+}
+
+function updateWizard(step) {
+  for(let i=0;i<4;i++){
+    const dot = document.getElementById("wd"+i);
+    const lbl = document.getElementById("wlbl"+i);
+    const line = document.getElementById("wl"+i);
+    if(!dot) continue;
+    dot.classList.toggle("active", i===step);
+    dot.classList.toggle("done", i<step);
+    lbl.classList.toggle("active", i===step);
+    lbl.classList.toggle("done", i<step);
+    if(line) line.classList.toggle("done", i<step);
+    document.getElementById("step-panel-"+i)?.classList.toggle("active", i===step);
+  }
+}
+
+function techNextStep(from) {
+  if(from===0) {
+    const name = document.getElementById("t-name").value.trim();
+    const phone = document.getElementById("t-phone").value.trim();
+    const exp = document.getElementById("t-exp").value;
+    if(!name||!phone||!exp){ toast("Please fill all required fields","warn"); return; }
+  }
+  if(from===1) {
+    if(!nidUploaded_front||!nidUploaded_back){ toast("Please upload both NID sides","warn"); return; }
+  }
+  if(from===2) {
+    // Check quiz complete
+    const score = quizAnswers.filter((a,i)=>a===SKILL_QUESTIONS[i].ans).length;
+    if(score < 3){ toast(`Score: ${score}/5. Need 3/5 to pass. Try again!`,"error"); return; }
+    toast(`Skill test passed! Score: ${score}/5 ✅`);
+  }
+  currentTechStep = from + 1;
+  if(currentTechStep > 3) { finishApplication(); return; }
+  updateWizard(currentTechStep);
+  window.scrollTo({top:200,behavior:"smooth"});
+}
+
+function techPrevStep(from) {
+  currentTechStep = from - 1;
+  updateWizard(currentTechStep);
+}
+
+function nidUploaded(side, input) {
+  if(!input.files||!input.files[0]) return;
+  const file = input.files[0];
+  const area = document.getElementById("nid-"+side+"-area");
+  const preview = document.getElementById("nid-"+side+"-preview");
+  if(area) area.classList.add("uploaded");
+  if(preview) preview.innerHTML = `<div style="font-size:2rem;margin-bottom:.4rem">✅</div><div style="font-weight:700;color:var(--g);font-size:.84rem">${file.name}</div><div style="font-size:.7rem;color:var(--m);margin-top:2px">Uploaded successfully</div>`;
+  if(side==="front") nidUploaded_front = true;
+  if(side==="back") nidUploaded_back = true;
+  toast(`NID ${side} uploaded ✅`);
+}
+
+// ── SKILL QUIZ ──
+let quizStep = 0;
+function initQuiz() {
+  quizAnswers = new Array(SKILL_QUESTIONS.length).fill(-1);
+  quizStep = 0;
+  renderQuiz();
+}
+function renderQuiz() {
+  const c = document.getElementById("quiz-container");
+  if(!c) return;
+  const q = SKILL_QUESTIONS[quizStep];
+  const pct = ((quizStep)/SKILL_QUESTIONS.length*100);
+  c.innerHTML = `
+    <div class="quiz-progress">
+      <div class="quiz-bar"><div class="quiz-bar-fill" style="width:${pct}%"></div></div>
+      <span style="font-size:.76rem;color:var(--m);white-space:nowrap">${quizStep+1} / ${SKILL_QUESTIONS.length}</span>
+    </div>
+    <div class="quiz-q">${q.q}</div>
+    <div class="quiz-opts">
+      ${q.opts.map((o,i)=>`<button class="quiz-opt ${quizAnswers[quizStep]===i?"selected":""}" onclick="selectQuizOpt(${i})">${o}</button>`).join("")}
+    </div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      ${quizStep>0?`<button class="btn-b" style="padding:10px 18px;font-size:.84rem" onclick="quizPrev()">← Prev</button>`:""}
+      <button class="btn-y" style="padding:10px;font-size:.86rem;justify-content:center;flex:1" onclick="quizNext()">${quizStep===SKILL_QUESTIONS.length-1?"Submit Test →":"Next Question →"}</button>
+    </div>`;
+}
+function selectQuizOpt(i) {
+  quizAnswers[quizStep] = i;
+  renderQuiz();
+}
+function quizNext() {
+  if(quizAnswers[quizStep]===-1){ toast("Please select an answer","warn"); return; }
+  if(quizStep < SKILL_QUESTIONS.length-1){ quizStep++; renderQuiz(); }
+  else {
+    // Show results
+    const score = quizAnswers.filter((a,i)=>a===SKILL_QUESTIONS[i].ans).length;
+    const c = document.getElementById("quiz-container");
+    c.innerHTML = `
+      <div style="text-align:center;padding:1.5rem 0">
+        <div style="font-size:3rem;margin-bottom:.8rem">${score>=3?"🎉":"😔"}</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:2rem;font-weight:800;color:${score>=3?"var(--g)":"var(--r)"};">${score}/5</div>
+        <div style="color:var(--m);font-size:.86rem;margin:.5rem 0 1.4rem">${score>=3?"Excellent! You passed the skill test.":"You need at least 3/5. Try again."}</div>
+        ${SKILL_QUESTIONS.map((q,i)=>`
+          <div style="text-align:left;background:var(--card2);border-radius:10px;padding:10px 13px;margin-bottom:8px;border:1px solid ${quizAnswers[i]===q.ans?"rgba(16,185,129,.25)":"rgba(239,68,68,.2)"}">
+            <div style="font-size:.78rem;font-weight:600;color:#fff;margin-bottom:4px">Q${i+1}: ${q.q.slice(0,55)}…</div>
+            <div style="font-size:.73rem;color:${quizAnswers[i]===q.ans?"var(--g)":"var(--r)"}">
+              ${quizAnswers[i]===q.ans?"✓ Correct":"✗ Wrong — "+q.opts[q.ans]}
+            </div>
+          </div>`).join("")}
+        ${score>=3?
+          `<button class="btn-y" style="padding:11px 28px;font-size:.88rem;margin-top:12px" onclick="techNextStep(2)">Continue → Mock Test</button>`:
+          `<button class="btn-b" style="padding:11px 28px;font-size:.88rem;margin-top:12px" onclick="initQuiz()">Retake Test</button>`}
+      </div>`;
+  }
+}
+function quizPrev() { if(quizStep>0){ quizStep--; renderQuiz(); } }
+
+// ── MOCK TEST ──
+let mockStep = 0;
+function initMockTest() {
+  mockAnswers = new Array(MOCK_SCENARIOS.length).fill(-1);
+  mockStep = 0;
+  renderMock();
+}
+function renderMock() {
+  const c = document.getElementById("mock-container");
+  if(!c) return;
+  const sc = MOCK_SCENARIOS[mockStep];
+  const pct = (mockStep/MOCK_SCENARIOS.length*100);
+  c.innerHTML = `
+    <div class="quiz-progress">
+      <div class="quiz-bar"><div class="quiz-bar-fill" style="width:${pct}%"></div></div>
+      <span style="font-size:.76rem;color:var(--m);white-space:nowrap">Scenario ${mockStep+1} / ${MOCK_SCENARIOS.length}</span>
+    </div>
+    <div style="background:linear-gradient(135deg,rgba(56,189,248,.07),rgba(245,197,24,.04));border:1px solid rgba(56,189,248,.18);border-radius:12px;padding:14px 16px;margin-bottom:14px">
+      <div style="font-weight:700;color:#fff;font-size:.88rem;margin-bottom:5px">📋 ${sc.title}</div>
+      <div style="font-size:.8rem;color:var(--b);font-weight:600">${sc.question}</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px">
+      ${sc.opts.map((o,i)=>`
+        <div class="mock-scenario ${mockAnswers[mockStep]===i?"selected":""}" onclick="selectMockOpt(${i})">
+          <div style="display:flex;gap:10px;align-items:flex-start">
+            <div style="width:22px;height:22px;border-radius:50%;border:2px solid ${mockAnswers[mockStep]===i?"var(--y)":"var(--border)"};display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">
+              ${mockAnswers[mockStep]===i?`<div style="width:10px;height:10px;border-radius:50%;background:var(--y)"></div>`:""}
+            </div>
+            <span style="font-size:.84rem;color:${mockAnswers[mockStep]===i?"#fff":"var(--t)"}">${o.t}</span>
+          </div>
+        </div>`).join("")}
+    </div>
+    <div style="display:flex;gap:10px">
+      ${mockStep>0?`<button class="btn-b" style="padding:10px 18px;font-size:.84rem" onclick="mockPrev()">← Prev</button>`:""}
+      <button class="btn-y" style="padding:10px;font-size:.86rem;justify-content:center;flex:1" onclick="mockNext()">${mockStep===MOCK_SCENARIOS.length-1?"Submit Mock Test →":"Next Scenario →"}</button>
+    </div>`;
+}
+function selectMockOpt(i) { mockAnswers[mockStep]=i; renderMock(); }
+function mockNext() {
+  if(mockAnswers[mockStep]===-1){ toast("Please select an option","warn"); return; }
+  if(mockStep < MOCK_SCENARIOS.length-1){ mockStep++; renderMock(); }
+  else {
+    const score = mockAnswers.filter((a,i)=>MOCK_SCENARIOS[i].opts[a]?.correct).length;
+    const c = document.getElementById("mock-container");
+    c.innerHTML = `
+      <div style="text-align:center;padding:1.5rem 0">
+        <div style="font-size:3rem;margin-bottom:.8rem">${score>=2?"🏆":"📝"}</div>
+        <div style="font-family:'Space Grotesk',sans-serif;font-size:2rem;font-weight:800;color:${score>=2?"var(--g)":"var(--y)"};">${score}/${MOCK_SCENARIOS.length}</div>
+        <div style="color:var(--m);font-size:.86rem;margin:.5rem 0 1.5rem">${score>=2?"Excellent judgment! You think like a professional.":"Good start. Our team will provide training."}</div>
+        <button class="btn-y" style="padding:12px 28px;font-size:.9rem" onclick="finishApplication()">Submit Application →</button>
+      </div>`;
+  }
+}
+function mockPrev() { if(mockStep>0){ mockStep--; renderMock(); } }
+
+function finishApplication() {
+  const appId = "FXT-" + Date.now().toString().slice(-7);
+  const name = document.getElementById("t-name")?.value || "Applicant";
+  const spec = document.getElementById("t-spec")?.value || "Technician";
+  const city = document.getElementById("t-city")?.value || "Dhaka";
+  document.querySelector(".become-tech-page, #page-become-tech > div")?.remove?.();
+  document.getElementById("page-become-tech").innerHTML = `
+    <div style="max-width:560px;margin:60px auto;padding:20px;text-align:center">
+      <div style="width:90px;height:90px;background:rgba(16,185,129,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:3rem;margin:0 auto 1.2rem;animation:bounceIn .6s ease both">✅</div>
+      <h1 style="font-family:'Space Grotesk',sans-serif;font-size:2rem;font-weight:800;color:#fff;margin-bottom:.6rem">Application Submitted!</h1>
+      <p style="color:var(--m);font-size:.9rem;line-height:1.7;max-width:400px;margin:0 auto 1.5rem">Welcome to the Fixify network, <strong style="color:#fff">${name}</strong>! Your application as a <strong style="color:var(--y)">${spec}</strong> in <strong style="color:var(--b)">${city}</strong> has been received.</p>
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.4rem;margin-bottom:1.4rem">
+        <div style="display:flex;flex-direction:column;gap:10px;text-align:left">
+          <div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.2rem">🎫</span><div><div style="font-size:.72rem;color:var(--m)">Application ID</div><div style="font-weight:800;color:var(--y);font-size:.96rem">${appId}</div></div></div>
+          <div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.2rem">⏳</span><div><div style="font-size:.72rem;color:var(--m)">Review Time</div><div style="font-weight:700;color:#fff;font-size:.88rem">Within 24 hours</div></div></div>
+          <div style="display:flex;align-items:center;gap:10px"><span style="font-size:1.2rem">📞</span><div><div style="font-size:.72rem;color:var(--m)">Next Step</div><div style="font-weight:700;color:#fff;font-size:.88rem">Our team will call you for a quick video interview</div></div></div>
+        </div>
+      </div>
+      <button class="btn-y" style="padding:12px 28px;font-size:.9rem" onclick="showPage('home')">← Back to Home</button>
+    </div>`;
+  toast("Application submitted! We'll call you within 24 hours 🎉");
+}
+
+// ══════════ FAQ ══════════
+let openFaq = null;
+function toggleFaq(i) {
+  const items = document.querySelectorAll(".faq-item");
+  if(openFaq===i){ items[i].classList.remove("open"); openFaq=null; }
+  else{ if(openFaq!==null) items[openFaq]?.classList.remove("open"); items[i].classList.add("open"); openFaq=i; }
+}
+
+// ══════════ CONTACT ══════════
+function sendContact() {
+  const name=document.getElementById("c-name").value.trim();
+  const email=document.getElementById("c-email").value.trim();
+  const msg=document.getElementById("c-msg").value.trim();
+  document.getElementById("err-name").textContent="";
+  document.getElementById("err-email").textContent="";
+  document.getElementById("err-msg").textContent="";
+  let valid=true;
+  if(!name){document.getElementById("err-name").textContent="Required";valid=false;}
+  if(!email.includes("@")){document.getElementById("err-email").textContent="Valid email needed";valid=false;}
+  if(!msg){document.getElementById("err-msg").textContent="Required";valid=false;}
+  if(!valid) return;
+  const btn=document.getElementById("contact-send-btn");
+  btn.textContent="Sending…"; btn.disabled=true;
+  setTimeout(()=>{
+    document.getElementById("contact-form-wrap").innerHTML=`
+      <div class="success-box">
+        <div class="success-icon" style="background:rgba(16,185,129,.1)">✅</div>
+        <h3 style="font-weight:800;font-size:1.2rem;color:#fff">Message Sent! ✨</h3>
+        <p style="color:var(--m);font-size:.84rem;line-height:1.6">Thanks <strong style="color:#fff">${name}</strong>! We'll reply within 2 hours.</p>
+        <button class="btn-y" style="padding:10px 24px;font-size:.84rem" onclick="location.reload()">Send Another →</button>
+      </div>`;
+  },1700);
+}
+
+// ══════════ COMPLAINT ══════════
+var _cStars=0, _cCat='Technician Conduct';
+var _cStarLabels=['','Very bad','Below expectations','Average','Good, minor issues','Excellent'];
+(function(){
+  var ta=document.getElementById('cinp-msg');
+  if(!ta) return;
+  ta.addEventListener('input',function(){
+    var n=Math.min(this.value.length,500);
+    var el=document.getElementById('cinp-char');
+    if(el){el.textContent=n+' / 500';el.style.color=n>450?'var(--r)':'var(--m)';}
+    if(this.value.length>500) this.value=this.value.slice(0,500);
+  });
+})();
+function cSetStars(n){_cStars=n;document.querySelectorAll('.cstar').forEach((b,i)=>b.classList.toggle('on',i<n));var lbl=document.getElementById('cstar-lbl');if(lbl)lbl.textContent=_cStarLabels[n]||'';}
+function cSelCat(btn){document.querySelectorAll('.ccat').forEach(b=>b.classList.remove('on'));btn.classList.add('on');_cCat=btn.textContent.trim();}
+function cSubmit(){
+  var msg=(document.getElementById('cinp-msg')||{}).value||''; msg=msg.trim();
+  if(!msg){toast('Please write your complaint before submitting','warn');return;}
+  var btn=document.getElementById('cinp-btn');
+  if(btn){btn.textContent='Submitting…';btn.disabled=true;}
+  setTimeout(function(){
+    var name=((document.getElementById('cinp-name')||{}).value||'').trim()||'Customer';
+    var anon=(document.getElementById('cinp-anon')||{}).checked;
+    var tid='FXC-'+Date.now().toString().slice(-6);
+    var stars=_cStars>0?('<div style="font-size:1.25rem;color:#F59E0B;margin:.4rem 0">'+'★'.repeat(_cStars)+'☆'.repeat(5-_cStars)+'</div>'):'';
+    var wrap=document.getElementById('cform-wrap');
+    if(wrap)wrap.innerHTML='<div style="text-align:center;padding:2.8rem 1.5rem;display:flex;flex-direction:column;align-items:center;gap:14px"><div style="width:70px;height:70px;background:rgba(16,185,129,.1);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2.3rem">✅</div><h3 style="font-family:Space Grotesk,sans-serif;font-size:1.4rem;font-weight:800;color:#fff">Complaint Received</h3>'+stars+'<p style="color:var(--m);font-size:.86rem;line-height:1.72;max-width:340px">'+(anon?'Anonymous complaint':'<strong style=\'color:#fff\'>'+name+'</strong>\'s complaint')+' filed under <strong style=\'color:var(--y)\'>'+_cCat+'</strong>. Quality team responds in <strong style=\'color:#fff\'>6 hours</strong>.</p><div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:10px 16px;font-size:.78rem;color:var(--m);width:100%">🎫 Ticket: <strong style=\'color:#fff\'>'+tid+'</strong></div><button class=\'btn-y\' style=\'padding:10px 24px;font-size:.84rem\' onclick=\'location.reload()\'>Submit Another →</button></div>';
+    toast('Complaint filed — Ticket: '+tid+' ✅');
+  },1800);
+}
+
+// ══════════ MODAL CLOSE HANDLERS ══════════
+document.getElementById("post-modal").addEventListener("click", function(e){ if(e.target===this) closePostModal(); });
+document.getElementById("post-detail-modal").addEventListener("click", function(e){ if(e.target===this) closePostDetail(); });
+document.getElementById("booking-modal").addEventListener("click", function(e){ if(e.target===this) closeBookingModal(); });
+document.getElementById("gps-modal").addEventListener("click", function(e){ if(e.target===this) closeGpsModal(); });
+
+// Live count
+setInterval(()=>{
+  const lc=document.getElementById("live-count");
+  if(lc){const n=Math.max(3,5+Math.floor(Math.random()*4-2));lc.textContent=n+" active";}
+},3000);
+</script>
+</body>
+</html>
